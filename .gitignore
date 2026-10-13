@@ -1,0 +1,38 @@
+# Unreal generated
+project/Saved/
+project/Intermediate/
+project/DerivedDataCache/
+project/Binaries/
+project/build/
+project/.vs/
+project/Plugins/*/Binaries/
+project/Plugins/*/Intermediate/
+# Community SDK code is not ours: copy it from the SDK (see README "Opening the project").
+project/Source/IntoTheRadius/
+project/Plugins/VRExpansionPlugin/
+project/Plugins/ModFramework/
+# Our plugin (Plugins/ItrShowcaseEditor) stays tracked
+*.sln
+# The game's config (extract with project/extract-game-config.ps1)
+project/Config/DefaultEngine.ini
+# gameplay tag lists copied from the SDK by the map build
+project/Config/DefaultGameplayTags.ini
+project/Config/Tags/*
+# ...except the map's tags (Loot.ItrShowcase.*, NPC.Generator.ItrShowcase.*)
+!project/Config/Tags/ItrShowcaseGameplayTags.ini
+
+# SDK / game asset copies under project/Content: ignored until the licensing check is done.
+# Only our Content/Mods/ItrShowcase is tracked.
+project/Content/*
+!project/Content/Mods/
+project/Content/Mods/*
+!project/Content/Mods/ItrShowcase/
+
+# The built pak and release zips are published as GitHub release assets, never committed.
+*.pak
+release/
+
+# python
+__pycache__/
+*.pyc
+.venv/

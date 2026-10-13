@@ -1,0 +1,12 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "ITR Showcase Editor",
+	"Description": "Editor-only tooling for the ITR Showcase map: generates Blueprints (engine nodes only) from JSON specs. Nothing in here is referenced by cooked content.",
+	"Category": "Editor",
+	"CanContainContent": false,
+	"Modules": [
+		{ "Name": "ItrShowcaseEditor", "Type": "Editor", "LoadingPhase": "Default" }
+	]
+}

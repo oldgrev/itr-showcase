@@ -1,0 +1,59 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "4.27",
+	"Category": "",
+	"Description": "ITR Showcase: large demo map for Into the Radius 1 (2.7.2). C++ module = ITR-SDK recreation (gameplay BPs). See ../README.md.",
+	"Plugins": [
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "VRExpansionPlugin",
+			"Enabled": true
+		},
+		{
+			"Name": "ModFramework",
+			"Enabled": true
+		},
+		{
+			"Name": "PhysXVehicles",
+			"Enabled": true
+		},
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		},
+		{
+			"Name": "ApexDestruction",
+			"Enabled": true
+		},
+		{
+			"Name": "AnalyticsBlueprintLibrary",
+			"Enabled": true
+		},
+		{
+			"Name": "ItrShowcaseEditor",
+			"Enabled": true
+		}
+	],
+	"Modules": [
+		{
+			"Name": "IntoTheRadius",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"AIModule",
+				"NavigationSystem",
+				"CoreUObject",
+				"VRExpansionPlugin",
+				"ModFramework"
+			]
+		}
+	]
+}

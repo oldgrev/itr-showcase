@@ -1,0 +1,2 @@
+# The generated level is ~160 MB, over GitHub's 100 MB file limit: store it with Git LFS.
+project/Content/Mods/ItrShowcase/**/*.umap filter=lfs diff=lfs merge=lfs -text

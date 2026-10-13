@@ -1,0 +1,7 @@
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+build/
+# The game's file; extract it with extract-game-config.ps1
+Config/DefaultEngine.ini
