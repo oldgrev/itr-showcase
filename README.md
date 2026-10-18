@@ -130,6 +130,16 @@ select one to see how it is configured.
 
 ### Loot setup
 This is the part most map makers will want to copy.
+```
+Quick interjection since most of this document was with ai and it's made a heck of a claim right there!
+It's a bit strong to say 'map makers will want to copy', since the loot on this is map a little different and it's not just "here is loot table". So
+a) folks might find this a little overcomplicated for what *they* want, although it does simplify down
+b) once some maps are made, circulated and played, a better approach may be adopted.
+So it's a tad overconfident to say 'map makers will want to copy' and then not call out clearly why the loot in the map is pretty cool imho.
+- you get to define your loot table(s)
+- you can also have different loot tables(tiers) assigned to different spawners and each tier has their own budget.
+It's not mind blowing, but it's something I haven't seen done in ITR yet.
+```
 - The game's loot budgets are global and save-wide per tag, so a 2.5 km map reusing the vanilla zone tags would be sparse.
   The map therefore has **45 custom loot tags** (`Loot.ItrShowcase.<tier>.<category>`): four tiers (T1, T2, T25, T3, getting
   better to the north), each with a budget scaled from the vanilla zone it is modelled on by area, plus nine signature stash tags
@@ -202,3 +212,8 @@ Credits:
   project builds on.
 - **UE4SS**, and the "UE4SS for ITR1" repack on Nexus Mods by MerithXYZ.
 - **OpenStreetMap contributors** because I used some stats from regional building layouts to drive my layouts.
+
+## Obligatory AI Usage info
+AI writes code about 10x quicker than me and it is often less frustrating than banging my head against why unreal editor wont build for hours on end(only to learn I didn't need *that* component to build anyway) and then needing to learn the ins and outs of shaders to make code edits to generate the right format used by the original game.... So in this case it made a lot happen that wouldn't have happened otherwise and the caveat that that comes with is that the 'owner' of the code in this instance(and probably most instances imho) does not have the depth of knowledge that you'd want. But this is just a basic map I manufactured to try show things like how "big" works, how spawners work, how loot can work etc. So it's better to have than not to I hope.
+
+Also the documentation... writing documentation for a repo no one will ever see is unmotivating and so without ai usage it's unlikely to have materialized.
