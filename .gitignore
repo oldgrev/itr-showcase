@@ -7,8 +7,9 @@ project/build/
 project/.vs/
 project/Plugins/*/Binaries/
 project/Plugins/*/Intermediate/
-# Community SDK code is not ours: copy it from the SDK (see README "Opening the project").
-project/Source/IntoTheRadius/
+# project/Source/IntoTheRadius is OUR module, tracked: generated from the game's reflection data by
+# tools/itr-showcase/cppmod/gen_module.py (run.ps1 verifies it against the game). Do not edit by hand.
+# Community SDK plugin code is not ours: copy it from the SDK (see README "Opening the project").
 project/Plugins/VRExpansionPlugin/
 project/Plugins/ModFramework/
 # Our plugin (Plugins/ItrShowcaseEditor) stays tracked
@@ -27,6 +28,8 @@ project/Content/*
 !project/Content/Mods/
 project/Content/Mods/*
 !project/Content/Mods/ItrShowcase/
+project/Content/Mods/ItrShowcase/AuditCopies
+project/Content/Mods/ItrShowcase/AuditScratch
 
 # The built pak and release zips are published as GitHub release assets, never committed.
 *.pak

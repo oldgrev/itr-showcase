@@ -42,7 +42,7 @@ case, then by display name (Branch `True`/`False`, Delay `Completed`). `exec`/`i
 `execute`/`then`. If a pin isn't found, the error lists the pins the node has. Links are made before pin defaults, so
 wildcard pins (macros, array functions) are resolved by the time their defaults are set.
 
-## Additions (T-067, easter egg)
+## Additions (easter egg)
 
 Top-level keys: `"requires": ["Other.json"]` (paths relative to this spec) generates those specs first, so this Blueprint can name their
 classes (`object:/Game/.../BP_X.BP_X_C`); a spec is generated once per process and file time. A spec with no `nodes` needs no EventGraph, so
@@ -76,3 +76,17 @@ Ops and fields:
   `RandomBoolWithWeight`, `KismetStringLibrary:ToLower` / `Trim` / `EqualEqual_StriStri` / `Contains`, `KismetArrayLibrary:Array_Add` /
   `Array_Get` / `Array_Set` / `Array_Clear` / `Array_Contains`; the macros `ForEachLoop`, `ForLoop`, `ForLoopWithBreak` (pins `Exec`, `Break`,
   `LoopBody`, `Index`, `ArrayElement`, `Completed`).
+
+## Additions (audit recreation)
+
+* `"lenient": true` (top level): a component or class-default property the project's classes do not have, a value the property cannot take, or an
+  asset path that is not in this project is a report note (`unreproduced <where>.<prop>: why`), not an error. The rest is still built.
+* Component `"socket"`: the SCS attach socket. A component whose `attach` parent is not defined earlier in `components` is an error.
+* Property values (`props`, `cdo`) may be JSON instead of T3D text: structs as objects (field names as in C++, case-insensitive), arrays as arrays,
+  enums by name (`"EComponentMobility::Static"` or `"Static"`), object / class references as `/Game/...` or `/Script/...` paths, `GameplayTagContainer`
+  as an array of tag strings, `GameplayTag` as a string or `{"TagName": ...}`, `Text` as `{"CultureInvariantString": ...}`. Converted by the property's type.
+* `"cdo": {Property: value}`: sets the class default object of the generated class (native properties of the parent and the Blueprint's own variables),
+  applied after the final compile.
+* `UItrShowcaseBPGen.DumpBlueprint(AssetPath)` (Python `dump_blueprint`): JSON of what a saved Blueprint holds (parent, status, SCS components with
+  class / parent / socket / template properties that differ from the class default as T3D export text, class defaults that differ from the parent,
+  variables, graph counts). Used by a comparison script in the maintainer's workspace (not in this repo) to compare a generated asset with the game's data.

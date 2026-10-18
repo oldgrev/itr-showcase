@@ -18,4 +18,12 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "ITR Showcase|BPGen")
 	static FString GenerateBlueprintFromSpec(const FString& JsonPath);
+
+	/**
+	 * Loads the Blueprint at AssetPath (/Game/...) and returns JSON of what it holds: parent class, compile status, SCS components
+	 * (class, parent, socket, template properties that differ from the class default, as T3D text), class-default values that differ from the
+	 * parent class, member variables and graph counts. Used by the audit's read-back (tools/itr-showcase/audit).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "ITR Showcase|BPGen")
+	static FString DumpBlueprint(const FString& AssetPath);
 };

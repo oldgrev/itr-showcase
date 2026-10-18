@@ -1,0 +1,76 @@
+#include "PRSpiderNpcAnimInstance.h"
+#include "ITRDefaults.h"
+
+UPRSpiderNpcAnimInstance::UPRSpiderNpcAnimInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
+    ITRDefaults::Set(GetClass(), this, TEXT("Velocity.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Velocity.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Velocity.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("RootSpinInDegPerSec"), (double)360);
+    ITRDefaults::Set(GetClass(), this, TEXT("IdleLegBendInDeg"), (double)70);
+    ITRDefaults::Set(GetClass(), this, TEXT("IdleBendPercentAtLegRoot"), (double)0.100000001);
+    ITRDefaults::Set(GetClass(), this, TEXT("MovingLegBendInDeg"), (double)170);
+    ITRDefaults::Set(GetClass(), this, TEXT("MovingBendPercentAtLegRoot"), (double)0.699999988);
+    ITRDefaults::Set(GetClass(), this, TEXT("BendDeltaInDegPerSec"), (double)1440);
+    ITRDefaults::Set(GetClass(), this, TEXT("bJitterEnabled"), true);
+    ITRDefaults::Set(GetClass(), this, TEXT("IdleJitterLerpCycleInSec"), (double)0.150000006);
+    ITRDefaults::Set(GetClass(), this, TEXT("IdleJitterRadius"), (double)5);
+    ITRDefaults::Set(GetClass(), this, TEXT("MovingJitterLerpCycleInSec"), (double)0.0500000007);
+    ITRDefaults::Set(GetClass(), this, TEXT("MovingJitterRadius"), (double)10);
+    ITRDefaults::Set(GetClass(), this, TEXT("bVelocityDragEnabled"), true);
+    ITRDefaults::Set(GetClass(), this, TEXT("VelocityDragFactor"), (double)10);
+    ITRDefaults::Set(GetClass(), this, TEXT("HighVelocityDragFactor"), (double)20);
+    ITRDefaults::Set(GetClass(), this, TEXT("HighVelocityThreshold"), (double)700);
+    ITRDefaults::Set(GetClass(), this, TEXT("DragDeltaPerSec"), (double)80);
+    ITRDefaults::Set(GetClass(), this, TEXT("SkeletonRootRotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("SkeletonRootRotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("SkeletonRootRotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg1Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg1Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg1Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg1Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg1Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg1Displacement.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg2Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg2Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg2Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg2Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg2Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg2Displacement.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg3Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg3Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg3Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg3Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg3Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg3Displacement.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg4Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg4Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg4Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg4Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg4Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg4Displacement.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg5Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg5Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg5Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg5Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg5Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg5Displacement.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg6Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg6Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg6Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg6Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg6Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg6Displacement.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg7Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg7Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg7Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg7Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg7Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg7Displacement.Z"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg8Rotation.Pitch"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg8Rotation.Yaw"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg8Rotation.Roll"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg8Displacement.X"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg8Displacement.Y"), (double)0);
+    ITRDefaults::Set(GetClass(), this, TEXT("Leg8Displacement.Z"), (double)0);
+}
+

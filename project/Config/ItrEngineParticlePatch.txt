@@ -1,0 +1,1 @@
+ItrKeepCookedParticleBuild engine patch is built (UE4Editor-Engine.dll). Presence of this file lets ItrShowcaseAudit create GPU particle systems.

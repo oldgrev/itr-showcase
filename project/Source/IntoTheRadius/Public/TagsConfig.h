@@ -1,0 +1,190 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/DataAsset.h"
+#include "GameplayTagContainer.h"
+#include "IAsset.h"
+#include "TagsConfig.generated.h"
+
+class UTagsConfig;
+
+UCLASS(Blueprintable, BlueprintType)
+class INTOTHERADIUS_API UTagsConfig : public UDataAsset, public IIAsset {
+    GENERATED_BODY()
+public:
+    UTagsConfig(const FObjectInitializer& ObjectInitializer);
+
+    UFUNCTION(BlueprintPure)
+    static UTagsConfig* GetTagsConfig();
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkStashOpened;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkArtifactVisible;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkFireModeSemi;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkFireModeAuto;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkFireModeBurst3;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkAttachmentOn;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkPocketFlashlightRed;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkNeedToExtractRound;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkBoltOpen;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMarkCigaretteLighting;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagAllStashes;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagStashSmall;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagStashLarge;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagStashHidden;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagAllUpgrades;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItems;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllBoxes;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllMags;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllScopes;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllSilencers;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllCassettes;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllArtifacts;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllCores;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllAmmo;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllWeapons;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllPrimary;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllSecondary;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemAllMap;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagCassettesLore;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemMap;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemCamera;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagItemBackpack;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagHolderHeadDown;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagHolderBackpack;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagHolderHand;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagHolderLeftHand;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagHolderRightHand;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagLevelTransition;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagLevelMainMenu;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagLevelHub;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagLocationTutorialExit;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagLevelStartTutorial;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagLevelShootingRange;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerTutorialSkipped;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TArray<FGameplayTag> TutorialSkipTriggers;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerOldTutorialFinished;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerKatyaShown;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerComputerUnlocked;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerTutorialComputerUnlocked;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerTutorialHub;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerTutorialHubEntrance;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagTriggerFreeGame;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMissionsCategories;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMissionsCategoryTutorial;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMissionsCategoryStory;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMissionsCategoryGeneric;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMissionsCategorySpecialArtifacts;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMissionsCategorySpecialGenerators;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagFirstMission;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNPCs;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNPCMimic;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNPCArmoredMimic;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGenerators;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagAnomalies;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagClusters;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagBigClusters;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagMapPoints;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagDefaultSkin;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagCamoSkin;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TArray<FGameplayTag> CamoWeapons;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagDefaultAmmoType;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNoDistanceGrip;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGripTrigger;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGripTriggerIndex;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGripTriggerBoltAndSlide;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGripPriority;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGripPriorityNegative;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGripPriorityOne;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagGripPriorityTwo;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNoiseFootsteps;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNoiseImpact;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNoiseBulletHit;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNoiseWeaponClick;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNoiseWeaponShot;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag TagNoiseWeaponExplosion;
+};
