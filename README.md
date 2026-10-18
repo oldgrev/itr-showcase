@@ -150,7 +150,7 @@ It's not mind blowing, but it's something I haven't seen done in ITR yet.
 - Nothing in the map registers these tags with the game, so the loader does it at startup: it adds each tag to the game
   config's `LootArray` (`TMap` of tag to `FPRLootTableConfig`) on the stock donor tables, which never unload. See "Loot" in
   [`itr-common`'s loader README](../itr-common/loader-ue4ss/README.md).
-- The map's own tables must stay loaded while you are in it, or the game reads a freed table. `BP_ItrShowcase_LootTables` is a
+- The map's tables must stay loaded while you are in it, or the game reads a freed table. `BP_ItrShowcase_LootTables` is a
   placed actor whose `Tables` array holds a hard reference to every ItrShowcase table, so they load and unload with the level. Once
   the level is loaded the loader points the entries at those tables, and back at the donor tables when the level goes.
 - Generator ids follow the same idea: `NPC.Generator.ItrShowcase.<area>_<n>`.
