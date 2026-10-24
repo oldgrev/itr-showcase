@@ -21,8 +21,8 @@ public:
 private:
     UPROPERTY(EditAnywhere)
     UCoverDebugComponent* DebugComponent;
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     TArray<FVector> CoverPoints;
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     TArray<FVector> ShootingPositions;
 };

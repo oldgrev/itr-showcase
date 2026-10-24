@@ -45,11 +45,11 @@ public:
     FOneParamMonsterSpawner OnWildSpawnerCleared;
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     USphereComponent* Sphere;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool Wild;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(ExposeOnSpawn=true))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ExposeOnSpawn=true))
     FString SpawnerInstanceID;
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(ExposeOnSpawn=true))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ExposeOnSpawn=true))
     bool bForceInstanceID;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ExposeOnSpawn=true))
     float Radius;

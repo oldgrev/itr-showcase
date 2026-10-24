@@ -1,11 +1,11 @@
--- ITRMapLoader: gets you into a custom map in Into the Radius 1 (2.7.2) and back out again.
--- Map-agnostic: every map-specific value (level name, level tag, donor zone, map centre, loot manifest, entry trigger,
+-- ItrShowcaseLoader, based on itr-common's ITRMapLoader: gets you into a custom map in Into the Radius 1 (2.7.2) and back
+-- out again. Every map-specific value (level name, level tag, donor zone, map centre, loot manifest, entry trigger,
 -- exit) comes from config.lua. See README.md.
 --
 -- NATIVE mode (per map: Native = true; the recommended way). The map is registered with the game as a level at startup
 -- (an unloaded streaming entry + a row in SystemConfig.LevelConfigurations + a map centre + the loot tags), and entering
--- calls the game mode's TransferToLevel, as a zone gate does. The game then runs its own transition, level events, loot
--- and arrival. Any number of maps can be registered at once; each has its own trigger (a Hub item and/or a key).
+-- calls the game mode's TransferToLevel, as a zone gate does. The game then runs the transition, level events, loot
+-- and arrival as it does for a zone. Any number of maps can be registered at once; each has a trigger (a Hub item and/or a key).
 -- See "Native level" below.
 --
 -- STREAMING mode (Native = false; the older fallback). Roughly:
@@ -26,6 +26,14 @@
 
 local UEHelpers = require("UEHelpers")
 local Config = require("config")
+-- Test overrides: an optional Scripts/config_test.lua (a table) replaces keys of the config for an automated test run, for example
+-- RequireLevelManagerReady = false for a -nohmd game, or MissionTest = true. A normal install has no such file.
+do
+    local OkT, Over = pcall(require, "config_test")
+    if OkT and type(Over) == "table" then
+        for K, V in pairs(Over) do Config[K] = V end
+    end
+end
 
 -- LogTag names this loader in the log lines (config LogTag, default "ITRMapLoader"): give a second loader mod its own
 local LogName = Config.LogTag or "ITRMapLoader"
@@ -208,8 +216,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Re-entry memory: { map name -> last exit id }, one "name<TAB>id" line each, in a small file next to this script.
 ---------------------------------------------------------------------------------------------------------------------
--- Where this script lives. debug.getinfo's source can be relative or empty under UE4SS (the first c62ada0 runs never found
--- the loot manifest next to main.lua), so also ask package.searchpath where config.lua was found.
+-- Where this script lives. debug.getinfo's source can be relative or empty under UE4SS, so also ask package.searchpath
+-- where config.lua was found.
 local ScriptDirCache = nil
 local function ScriptDir()
     if ScriptDirCache then return ScriptDirCache end
@@ -380,7 +388,7 @@ end
 
 -- Is the player standing on this streamed level? true / false, or nil when the pawn can't tell.
 -- Information only: Pawn:GetMovementBase() is not a UFunction (UE4SS c62ada0 returns an invalid object for it and every call
--- raised "Tried calling a member function but the UObject instance is nullptr", ~2000x per run), so the base is read as the
+-- raises "Tried calling a member function but the UObject instance is nullptr"), so the base is read as the
 -- Character's BasedMovement.MovementBase property. It can be stale or empty for a VR pawn, so no decision depends on it;
 -- the staging/exit decisions use the pawn's position (StablePosition below). One log line on the first failure.
 local function OnMapGround(Stream)
@@ -495,8 +503,8 @@ end
 -- Gameplay activation (streaming mode; untested in game)
 ---------------------------------------------------------------------------------------------------------------------
 -- The map streams in after the Hub already fired its level-start events, so the map's gameplay actors (loot points,
--- stashes, anomalies, spawners, generators; all APRBasicActor) never get them. We call the same UFUNCTIONs on each actor
--- that lives in our level, in the game's order, through the actor so Blueprint overrides run. The global
+-- stashes, anomalies, spawners, generators; all APRBasicActor) never get them. The loader calls the same UFUNCTIONs on each
+-- actor that lives in the map's level, in the game's order, through the actor so Blueprint overrides run. The global
 -- UEventsManager delegates are NOT fired (the game mode, the player and the UI listen to those too).
 local ActivateDelayMs = 3000                 -- after arrival: the actors' BeginPlay must have run
 local LootBaseClass = "BP_LootSpawnPoint_C"  -- GenerateLoot is called on this class and its children
@@ -679,9 +687,10 @@ local function LootHasTag(Tag)
     return M ~= nil and TMapFind(M, { TagName = FName(Tag) }) ~= nil
 end
 
--- Loading the map pak's DataTable. c62ada0's global LoadAsset goes through the asset registry and found nothing for pak-only
--- assets in the first run, so: (1) already loaded? (2) LoadAsset (3 results: object, found, loaded) (3) KismetSystemLibrary
--- LoadAsset_Blocking with a soft-object struct, the route used by the game's blueprints. The route that worked is logged once.
+-- Loading an asset (a DataTable) from the map pak. The global LoadAsset of c62ada0 goes through the asset registry and does not
+-- find pak-only assets, so the routes are tried in this order: AssetRegistryHelpers.GetAsset, StaticFindObject (already loaded),
+-- LoadAsset, and KismetSystemLibrary.LoadAsset_Blocking with a soft-object struct, the route the game's blueprints use. The route
+-- that worked is logged once.
 local function LoadOwnTable(Path)
     local function Try(Name, Fn)
         local Ok, O = pcall(Fn)
@@ -695,7 +704,7 @@ local function LoadOwnTable(Path)
         return nil
     end
     -- AssetRegistryHelpers::GetAsset(FAssetData) = FindObject, else LoadObject on ObjectPath: works for pak assets the game's asset
-    -- registry does not list (it also finds pak assets the game's asset registry does not list). Tried first.
+    -- registry does not list.
     local Obj = Path:find(".", 1, true) and Path or (Path .. "." .. ShortName(Path))
     return Try("AssetRegistryHelpers.GetAsset", function()
             local ARH = StaticFindObject("/Script/AssetRegistry.Default__AssetRegistryHelpers")
@@ -724,7 +733,7 @@ local function LootCtxOf(Map)
               Once = false,       -- the tags are registered (once per session)
               KeepAlive = {},     -- Lua-side references to the map's DataTables (not GC roots; see RegisterLootTags)
               Manifest = nil,     -- the manifest of the registration (re-pointing / clearing the map's entries on later loads / unload)
-              Native = false }    -- native mode registered the tags at startup with donor tables: never load the map's own tables then
+              Native = false }    -- native mode registered the tags at startup with donor tables: never load the map's tables then
         LootCtxs[Map.Name] = C
     end
     return C
@@ -758,7 +767,7 @@ end
 -- The map's entries point at tables that live only while the map is loaded. Each later load re-points them at the tables the new
 -- level's holder brought in (ToDonor = false), each unload points them back at the donor's vanilla table (ToDonor = true), so LootArray
 -- never keeps a pointer to a collected table.
-local function RepointOwnTables(Map, ToDonor)
+local function RepointLootTables(Map, ToDonor)
     local Manifest = LootCtxOf(Map).Manifest
     local M = LootArrayOf()
     if not Manifest or type(Manifest.tags) ~= "table" or not M then return 0 end
@@ -794,7 +803,7 @@ end
 local function RegisterLootTags(Map, Manifest)
     if not Manifest then return 0 end
     local C = LootCtxOf(Map)
-    if C.Once then return RepointOwnTables(Map, false) end
+    if C.Once then return RepointLootTables(Map, false) end
     local Tags = Manifest.tags
     if type(Tags) ~= "table" then
         Log("loot manifest: no tags array")
@@ -906,48 +915,7 @@ local function RegisterLootTags(Map, Manifest)
     return R.Added
 end
 
--- Optional dev aid (config LootRetagShim = { NodePrefix, TagPrefix, GeneratorId [, FromPrefix] }, off by default): for a map
--- whose loot nodes still carry stock tags. Nodes whose actor name starts with NodePrefix get their loot tag
--- FromPrefix<Area>.<Cat> (default FromPrefix "Loot.Buffer.") rewritten to TagPrefix<Cat>, and the spawn generators among them
--- get the generator id GeneratorId. The new tags must be registered (loot manifest).
-local function LootRetagShim(Map, Acts)
-    local Cfg = Opt(Map, "LootRetagShim", false)
-    if type(Cfg) ~= "table" or type(Cfg.NodePrefix) ~= "string" then return end
-    local NodePrefix, TagPrefix, GenId = Cfg.NodePrefix, Cfg.TagPrefix or "", Cfg.GeneratorId
-    local FromPrefix = Cfg.FromPrefix or "Loot.Buffer."
-    local Nodes, Gens = 0, 0
-    for _, A in ipairs(Acts) do
-        if Valid(A) then
-            local Name = A:GetFName():ToString()
-            if Name:sub(1, #NodePrefix) == NodePrefix then
-                if IsClassNamed(A, LootBaseClass) then
-                    local Ok, Old = pcall(function() return A.LootTable.TagName:ToString() end)
-                    local New = ""
-                    if Ok and Old:sub(1, #FromPrefix) == FromPrefix then
-                        local Rest = Old:sub(#FromPrefix + 1)
-                        if Rest:sub(1, 6) == "Stash." then New = TagPrefix .. Rest
-                        else New = TagPrefix .. (Rest:match("^[^.]+%.(.*)$") or Rest) end
-                    end
-                    if New == "" or not LootHasTag(New) then
-                        Log("loot: retag %s: %s -> %s not possible (tag not registered)", Name, tostring(Old), New)
-                    else
-                        local Ok2, Err = pcall(function() A.LootTable = { TagName = FName(New) } end)
-                        Log("loot: retag %s: %s -> %s: %s", Name, tostring(Old), New, Ok2 and "done" or ("ERROR " .. tostring(Err)))
-                        if Ok2 then Nodes = Nodes + 1 end
-                    end
-                elseif GenId and ClassNameOf(A):find("SpawnGenerator", 1, true) then
-                    local Ok, Old = pcall(function() return A.generatorID.TagName:ToString() end)
-                    local Ok2, Err = pcall(function() A.generatorID = { TagName = FName(GenId) } end)
-                    Log("loot: generator %s id %s -> %s: %s", Name, Ok and Old or "?", GenId, Ok2 and "done" or ("ERROR " .. tostring(Err)))
-                    if Ok2 then Gens = Gens + 1 end
-                end
-            end
-        end
-    end
-    Log("loot: retag shim done: %d node(s) retagged, %d generator id(s)", Nodes, Gens)
-end
-
--- Every APRBasicActor whose outer is our streamed level
+-- Every APRBasicActor whose outer is the streamed level
 local function BasicActorsIn(Stream)
     local Out = {}
     local Level = Stream:GetLoadedLevel()
@@ -979,7 +947,6 @@ local function SortedKeys(T)
     return K
 end
 
--- One pass: call Fn(Args) on every actor in Acts that passes Filter and is still valid, logging each call.
 -- One pass: call Fn(Args) on every actor in Acts that passes Filter and is still valid. St = {I, C} lives in the caller's context:
 -- a native error in a call (not catchable by pcall) aborts the step, the step is re-run and resumes after that actor.
 local function ActivationPass(Acts, Fn, Args, Filter, St)
@@ -1027,8 +994,9 @@ local function ActivationSteps(Map, Stream, Ctx)
     end
     local function IsLoot(A) return IsClassNamed(A, LootBaseClass) end
     -- The native APRLootSpawner::OnLevelPrepare arms a distance timer that calls SpawnLoot once the player is within
-    -- GameConfig.LootSpawnDistance; calling SpawnLoot here as well spawned every item twice. So: OnLevelPrepare +
-    -- GenerateLoot only, and no OnLevelPrepare for a node that already spawned (saved items from an earlier visit), which would re-arm it.
+    -- GameConfig.LootSpawnDistance, so SpawnLoot is not called here (a second call would spawn every item twice). The passes are
+    -- OnLevelPrepare + GenerateLoot only, and OnLevelPrepare is skipped for a node that already spawned (saved items from an
+    -- earlier visit), which it would re-arm.
     local function NotPreSpawned(A)
         local Ok, Addr = pcall(function() return A:GetAddress() end)
         return not (Ok and Ctx.PreSpawned and Ctx.PreSpawned[Addr])
@@ -1077,12 +1045,8 @@ local function ActivationSteps(Map, Stream, Ctx)
             local Manifest = LoadLootManifest(Map)
             local Ok, Err = pcall(RegisterLootTags, Map, Manifest)
             if not Ok then Log("activate: RegisterLootTags failed: %s", tostring(Err)) end
-            if type(Opt(Map, "LootRetagShim", false)) == "table" then
-                local Ok2, Err2 = pcall(LootRetagShim, Map, Ctx.Acts)
-                if not Ok2 then Log("activate: LootRetagShim failed: %s", tostring(Err2)) end
-            end
         end },
-        -- Order of the game's chain (level-activation.md section 3). An actor that destroys itself in OnLevelPrepare
+        -- Order of the game's level-start chain. An actor that destroys itself in OnLevelPrepare
         -- (generator excluded in the save) is skipped by the later passes through the Valid check.
         PassStep("Prep", "OnLevelPrepare", TagArgs, NotPreSpawned),
         PassStep("Gen", "GenerateLoot", nil, IsLoot),
@@ -1202,7 +1166,7 @@ local function FindStaging(M)
     return Best, BestD
 end
 
--- Unload every streaming level that isn't ours (and doesn't hold the player), wait until they are gone, then call Done.
+-- Unload every streaming level except the map's (and any that holds the player), wait until they are gone, then arrive.
 local function UnloadHub(Map, M, Arrival, Staging)
     local T0 = os.clock()
     local World = UEHelpers.GetWorld()
@@ -1369,12 +1333,12 @@ end
 --
 -- Saves: NativeSaves = true (the showcase config) copies the donor zone's autosave, save-on-load, save-on-exit and sleeping flags,
 -- so the level saves like a stock zone and a save made in it loads back into it (the registration at startup runs before the
--- main menu offers the save). The loader does nothing else with saves (T-130: the startup guard that moved such a save to the
--- Hub is removed). NativeSaves = false turns those four flags off (no save file is written while the game is in the level).
-local NativeState = { Ready = false, Failed = nil, RowDone = false, CenterDone = false, LootDone = false, WorldAddr = nil,
+-- main menu offers the save). Apart from the progression unlock (MissionsProgression), the loader does not touch saves.
+-- NativeSaves = false turns those four flags off (no save file is written while the game is in the level).
+local NativeState = { Ready = false, Failed = nil, RowDone = false, CenterDone = false, GatesDone = false, LootDone = false, WorldAddr = nil,
                       Entry = nil, Map = nil, Tag = nil, Sub = nil, RowFill = nil, Checks = 0, Logged = {} }
 local NativeTrip = nil       -- the current native transfer in progress { Map, T0, Phase }
--- Loot tables: the map's own DataTables must never sit in GameConfig.LootArray while nothing keeps them
+-- Loot tables: the map's DataTables must never sit in GameConfig.LootArray while nothing keeps them
 -- alive. GameConfig is loaded at engine start (GC does not walk its references), so a table referenced only from LootArray is
 -- collected and ItemsManager::GetLootForTable later reads the dead pointer (access violation). The tags are
 -- registered on the donor (stock) tables; while the map's level is loaded, its table holder keeps the map's
@@ -1427,13 +1391,57 @@ local function Cached(Key, Fn)
     return O
 end
 
+-- Cheap lookups first (no object scan, about 0.1 ms; a FindAllOf costs 11-14 ms of game thread, a visible hitch in VR): the world's authority game mode is a
+-- property read, the live game data is the static UPRGameData::GetGameData (out parameter, filled by name). Each falls back to the scan when it gives nothing usable.
+local PRGameModeClass = nil
+local function CheapGameMode()
+    local Ok, GM = pcall(function() return UEHelpers.GetGameModeBase() end)
+    if not Ok or GM == nil or not Valid(GM) then return nil end
+    if not Valid(PRGameModeClass) then
+        local OkC, C = pcall(StaticFindObject, "/Script/IntoTheRadius.PRGameMode")
+        if not OkC or not Valid(C) then return nil end
+        PRGameModeClass = C
+    end
+    local OkI, Is = pcall(function() return GM:IsA(PRGameModeClass) end)
+    if OkI and Is == true then return GM end
+    return nil
+end
+
+local GameDataStatic = nil
+local function CheapGameData()
+    if not Valid(GameDataStatic) then
+        local Ok, C = pcall(StaticFindObject, "/Script/IntoTheRadius.Default__PRGameData")
+        if not Ok or not Valid(C) then return nil end
+        GameDataStatic = C
+    end
+    local Out = {}
+    local Ok = pcall(function() GameDataStatic:GetGameData(Out) end)
+    local GD = Ok and Out.GameData or nil
+    if GD ~= nil and Valid(GD) then return GD end
+    return nil
+end
+
 local function GetGameMode()
-    return Cached("gm", function() return LiveOf("PRGameMode")[1] end)
+    return Cached("gm", function()
+        local GM = CheapGameMode()
+        if GM then LogOnce("gmcheap", "lookup: game mode from the world's authority game mode (no object scan)"); return GM end
+        LogOnce("gmscan", "lookup: game mode by object scan (no authority game mode of the PRGameMode class yet)")
+        return LiveOf("PRGameMode")[1]
+    end)
 end
 
 -- The game data that holds the current level: the live PRGameData whose CurrentLevelTag is set (others: none, or a save preview)
 local GameDataLogged = false
 local function GetGameDataUncached()
+    local Cheap = CheapGameData()
+    if Cheap then
+        local Ok, N = pcall(function() return Cheap.CurrentLevelTag.TagName:ToString() end)
+        if Ok and type(N) == "string" and N ~= "None" and N ~= "" then
+            LogOnce("gdcheap", "lookup: game data from the static GetGameData (no object scan)")
+            return Cheap
+        end
+    end
+    LogOnce("gdscan", "lookup: game data by object scan (the static GetGameData gave none with a level tag yet)")
     local All = LiveOf("PRGameData")
     local Best = nil
     local Seen = {}
@@ -1623,7 +1631,7 @@ local function NativeEnsureRow(SC)
         Row = Arr[Fill.N + 1]                    -- grows the array by one zeroed row
         Fill.Grown = true
     elseif Now1 == Fill.N + 1 and Fill.Grown then
-        Row = Arr[Fill.N + 1]                    -- resume: our zeroed / half-written row
+        Row = Arr[Fill.N + 1]                    -- resume: the zeroed / half-written row of the aborted attempt
     else
         Log("native: level table changed size unexpectedly (%d -> %d); not touching it; native entry disabled", Fill.N, Now1)
         NativeState.Failed = "level table size changed"
@@ -1651,13 +1659,13 @@ local function NativeEnsureRow(SC)
         Row.MapMaterial = Fill.Empty
         Row.MapLegendMaterial = Fill.Empty
     end
-    Row.MapScale = tonumber(D.MapScale) or 1.0
-    Row.MapRotation = 0.0
+    Row.MapScale = tonumber(Opt(Map, "NativeMapScale", D.MapScale)) or 1.0
+    Row.MapRotation = tonumber(Opt(Map, "NativeMapRotation", 0.0)) or 0.0
     Row.MaxLevelRadius = tonumber(Opt(Map, "NativeRadius", 250000)) or 250000
     Row.FullPlayerStats = D.FullPlayerStats == true
     Row.LevelTag = TagStruct(Tag)                -- last: until here the row answers to no tag
     NativeState.RowFill = nil
-    -- checks: the earlier rows are untouched, ours reads back, and the game itself accepts the tag
+    -- checks: the earlier rows are untouched, the new row reads back, and the game accepts the tag
     local After = TagsOfRows(SC.LevelConfigurations)
     local Damaged = 0
     for I = 1, Fill.N do
@@ -1726,6 +1734,185 @@ local function NativeEnsureCenter()
     return true
 end
 
+-- (3b) level gates: one stock LevelGates row per return pad, so the tablet map draws the transition markers.
+-- MapPointsConfig.LevelGates is a TArray<FGateInfo> (LeadsFrom, LeadsTo, UnlockTrigger, LocationInLevel = cm from the level centre);
+-- it grows the way the level table does (index past the end = one zeroed element), the tag written last.
+local function NativeEnsureGates()
+    local Map, Tag = NativeState.Map, NativeState.Tag
+    local Gates = Opt(Map, "NativeGates", nil)
+    if type(Gates) ~= "table" or #Gates == 0 then return true end
+    local MPC = nil
+    pcall(function()
+        local C = StaticFindObject("/Script/IntoTheRadius.Default__MapPointsConfig")
+        if Valid(C) then MPC = C:GetMapPointsConfig() end
+    end)
+    if not Valid(MPC) then
+        Log("native: MapPointsConfig not found; no gate markers registered")
+        return true
+    end
+    local Arr = MPC.LevelGates
+    local Own, Before = 0, Arr:GetArrayNum()
+    pcall(function() Arr:ForEach(function(_, E) if E:get().LeadsFrom.TagName:ToString() == Tag then Own = Own + 1 end end) end)
+    if Own > 0 then
+        Log("native: %d gate row(s) for %s already registered (%d rows)", Own, Tag, Before)
+        return true
+    end
+    local Added = 0
+    for I, G in ipairs(Gates) do
+        local Ok, Err = pcall(function()
+            local Row = Arr[Before + I]                       -- grows the array by one zeroed row
+            Row.LeadsTo = TagStruct(G.To or HubLevelTag)
+            Row.LocationInLevel = { X = tonumber(G.X) or 0, Y = tonumber(G.Y) or 0, Z = tonumber(G.Z) or 0 }
+            Row.LeadsFrom = TagStruct(Tag)                    -- last: until here the row leads from no level (UnlockTrigger stays None = open)
+        end)
+        if Ok then Added = Added + 1 else Log("native: gate row %d failed: %s", I, tostring(Err)); break end
+    end
+    local After, Mine, Last = Arr:GetArrayNum(), 0, "?"
+    pcall(function()
+        Arr:ForEach(function(_, E)
+            local R = E:get()
+            if R.LeadsFrom.TagName:ToString() == Tag then
+                Mine = Mine + 1
+                Last = string.format("%s at (%.0f, %.0f, %.0f)", R.LeadsTo.TagName:ToString(), R.LocationInLevel.X, R.LocationInLevel.Y, R.LocationInLevel.Z)
+            end
+        end)
+    end)
+    Log("native: gates for %s: %d of %d added (%d -> %d rows), %d read back, last %s", Tag, Added, #Gates, Before, After, Mine, Last)
+    return true
+end
+
+-- (3c) the tablet picture. The level row shows blank paper (EmptyMapMaterial) while the map's level is not loaded; while it is, the row points
+-- at the MaterialInstance on the map board (a StaticMeshActor tagged NativeMapBoardTag): the level's reference keeps it alive, nothing in
+-- SystemConfig does. Back to blank paper before the level goes.
+local function MapBoardMaterial(Map)
+    local BoardTag = Opt(Map, "NativeMapBoardTag", "itr:mapboard")
+    local Ok, All = pcall(FindAllOf, "StaticMeshActor")
+    if not Ok or not All then return nil end
+    for _, A in ipairs(All) do
+        if Valid(A) then
+            for _, T in ipairs(TagsOf(A)) do
+                if T == BoardTag then
+                    local Mic = nil
+                    pcall(function() Mic = A.StaticMeshComponent:GetMaterial(0) end)
+                    if Valid(Mic) then return Mic end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+local function RepointMapPicture(Map, ToEmpty)
+    if not Opt(Map, "NativeMapPicture", false) then return false end
+    local SC = GetSystemConfig()
+    if not SC then return false end
+    local Arr = SC.LevelConfigurations
+    local Idx = nil
+    for I, T in ipairs(TagsOfRows(Arr)) do
+        if T == NativeState.Tag then Idx = I end
+    end
+    if not Idx then
+        Log("map picture: no level row for %s", tostring(NativeState.Tag))
+        return false
+    end
+    local New = nil
+    if ToEmpty then
+        pcall(function() New = SC.EmptyMapMaterial end)
+    else
+        New = MapBoardMaterial(Map)
+        if not Valid(New) then
+            Log("map picture: no map board (actor tagged %s) found in the loaded level; the tablet keeps the blank paper",
+                Opt(Map, "NativeMapBoardTag", "itr:mapboard"))
+            return false
+        end
+    end
+    if not Valid(New) then return false end
+    local Row = Arr[Idx]
+    Row.MapMaterial = New
+    Row.MapLegendMaterial = New
+    local Name = "?"
+    pcall(function() Name = Row.MapMaterial:GetFName():ToString() end)
+    Log("map picture: level row %d %s -> %s (scale %s, rotation %s)", Idx, ToEmpty and "back to blank paper" or "shows the map board's picture", Name,
+        tostring(Row.MapScale), tostring(Row.MapRotation))
+    return true
+end
+
+-- Loot tables and the tablet picture follow the level: both are re-pointed when it loads and put back before it goes
+local function RepointOwnTables(Map, ToDonor)
+    local N = RepointLootTables(Map, ToDonor)
+    local Ok, Err = pcall(RepointMapPicture, Map, ToDonor)
+    if not Ok then Log("map picture: error %s", tostring(Err)) end
+    return N
+end
+
+-- (3d) showcase missions (Scripts/missions.lua, config Missions = { Enabled = true }): category, missions, objective points, the first mission
+-- offered at once, and the progression unlock on arrival. Every step is logged; a failure turns only the missions off.
+local MissionsMod = nil
+local MissionsState = { Inited = false, Registered = false, Pushed = false, Off = false }
+local function MissionsCfg() return Config.Missions end
+local function MissionsEnabled()
+    local C = MissionsCfg()
+    return type(C) == "table" and C.Enabled == true and not MissionsState.Off
+end
+
+local function MissionsInit()
+    if MissionsState.Inited then return MissionsState.Inited == true end
+    MissionsState.Inited = "failed"
+    local Ok, Mod = pcall(require, "missions")
+    if not Ok or type(Mod) ~= "table" then
+        Log("missions: module missing or broken (%s); showcase missions are off", tostring(Mod))
+        MissionsState.Off = true
+        return false
+    end
+    Mod.Init({ Log = Log, Valid = Valid, TagStruct = TagStruct, TMapFind = TMapFind, LoadAsset = LoadOwnTable, GetGameData = GetGameData,
+               GetGameMode = GetGameMode, LevelTagNow = LevelTagNow, InTransition = InTransition, Hub = HubLevelTag, Config = MissionsCfg(), Now = Now })
+    if not Mod.LoadManifest(ScriptDir(), NativeState.Map.Name, JsonDecode) then
+        MissionsState.Off = true
+        return false
+    end
+    MissionsMod = Mod
+    MissionsState.Inited = true
+    if Config.MissionTest == true then                          -- autotest only (config_test.lua)
+        local OkT, T = pcall(require, "missiontest")
+        if OkT and type(T) == "table" then
+            local OkS, ErrS = pcall(T.Start, { Log = Log, Valid = Valid, Every = Every, Mod = Mod, GetGameData = GetGameData, GetGameMode = GetGameMode, LevelTagNow = LevelTagNow,
+                                               InTransition = InTransition, Hub = HubLevelTag, Now = Now, Config = Config })
+            if not OkS then Log("mission test driver failed to start: %s", tostring(ErrS)) end
+        else
+            Log("mission test driver missing: %s", tostring(T))
+        end
+    end
+    return true
+end
+
+-- one tick (1 s loop, game thread): register once, then keep the series going (the keeper throttles itself to one look every 5 s)
+local function MissionsTick()
+    if not MissionsEnabled() then return end
+    if not MissionsInit() then return end
+    local LM = GetLevelManager()
+    if not LM or (Config.RequireLevelManagerReady ~= false and not LM:IsReady()) or InTransition() then return end
+    if not MissionsState.Registered then
+        local Ok, Done = pcall(MissionsMod.Register)
+        if not Ok then
+            Log("missions: registration error %s; showcase missions are off", tostring(Done))
+            MissionsState.Off = true
+            return
+        end
+        MissionsState.Registered = Done == true
+        return
+    end
+    if MissionsMod.State().Failed then return end
+    local Ok, Err = pcall(MissionsMod.Keep)
+    if not Ok then LogOnce("keeperr", "missions: keeper error %s", tostring(Err)) end
+end
+
+-- the showcase loaded: set the visited levels of the progression unlock (the player level and the trigger flags are BP_ItrShowcase_Progression; idempotent)
+local function MissionsProgression(Why)
+    if not MissionsEnabled() or not MissionsMod or MissionsMod.State().Failed then return end
+    local Ok, Err = pcall(MissionsMod.ApplyVisitedLevels, Why)
+    if not Ok then Log("missions: progression error %s", tostring(Err)) end
+end
+
 -- One registration tick (game thread). Returns nothing; NativeState tells the story.
 local function NativeRegisterTick()
     local Map = NativeState.Map
@@ -1761,6 +1948,11 @@ local function NativeRegisterTick()
     if not NativeState.CenterDone then
         NativeState.CenterDone = true            -- one attempt; a failure is logged and does not block entry
         NativeEnsureCenter()
+    end
+    if not NativeState.GatesDone then
+        NativeState.GatesDone = true             -- one attempt; a failure is logged and does not block entry
+        local Ok, Err = pcall(NativeEnsureGates)
+        if not Ok then Log("native: gates: error %s", tostring(Err)) end
     end
     if not NativeState.LootDone then
         NativeState.LootDone = true
@@ -1836,11 +2028,11 @@ local function NativeEnter(Map, Why)
         if InTr then Trip.SeenTransition = true end
         local LevelNow = LevelTagNow()
         local LM = GetLevelManager()
-        local LMReady = LM and LM:IsReady() or false
-        -- the game's DoSavePlayerPosition overwrites the single saved position while not in transition; keep ours in place
+        local LMReady = LM and (Config.RequireLevelManagerReady == false or LM:IsReady()) or false     -- a -nohmd game never reports the level manager ready (config_test.lua)
+        -- the game's DoSavePlayerPosition overwrites the single saved position while not in transition; keep the start position in place
         -- until the level start has read it
         if LevelNow ~= Tag or InTr or not LMReady then NativeSavePosition(Map) end
-        -- the map's level is in memory: its table holder keeps the own loot tables alive, so point the entries at them now
+        -- the map's level is in memory: its table holder keeps the map's loot tables alive, so point the entries at them now
         -- (before the level's loot nodes roll; until then the entries hold the stock donor tables, which never go away)
         if not Trip.LootDone then
             local W = UEHelpers.GetWorld()
@@ -1875,6 +2067,7 @@ local function NativeEnter(Map, Why)
             end
             Current = { Map = Map, Stream = Stream, Return = nil, Phase = "active", Exits = {}, Native = true }
             ArmExits(M)
+            MissionsProgression("arrival")
             NativeTrip = nil
             return true
         end
@@ -1909,7 +2102,7 @@ local function NativeExit(Why)
         local LM = GetLevelManager()
         local World = UEHelpers.GetWorld()
         local Back = LevelNow == HubLevelTag or (LevelNow == nil and Valid(World) and IsHubVisible(World))
-        if Back and LM and LM:IsReady() and not InTransition() then
+        if Back and LM and (Config.RequireLevelManagerReady == false or LM:IsReady()) and not InTransition() then
             Log("native exit: back in %s after %.1f s", HubLevelTag, (Now() - T0w) / 1000)
             Current = nil
             return true
@@ -1925,7 +2118,7 @@ end
 
 -- Pickup trigger (config NativeTriggerMesh = the name of a Hub item's static mesh): grabbing a Hub prop with that mesh starts the
 -- transfer. Hub props such as cups, books and tins are BP_PhysicsActor_C actors whose Mesh property names the static mesh.
--- The hook only reacts to the mesh named in this loader's own config, so several loader mods can share the grab event.
+-- The hook only reacts to the mesh named in this loader's config, so several loader mods can share the grab event.
 -- BP_PhysicsActor_C implements the VRExpansion grip event OnGrip(GrippingController, GripInformation) as a Blueprint
 -- function, which the grip controller calls when a hand takes the item, so UE4SS can hook it like any script function.
 local TriggerHooked = false
@@ -1982,12 +2175,12 @@ local function NativeHookTrigger()
 end
 
 -- Re-entry of the map by the game itself (fog wall / tide / death reload = IPRGameMode::ReEnterCurrentLevel, no NativeEnter):
--- the level is unloaded and loaded again behind the transition screen. Its table holder goes with the old level, so the own
+-- the level is unloaded and loaded again behind the transition screen. Its table holder goes with the old level, so the map's
 -- loot entries move back to the donor tables as soon as the transition starts (before the old tables can be collected) and
 -- to the new level's holder as soon as the level is loaded again (before its loot nodes roll), as NativeEnter does.
 local NativeReturn = nil     -- { T0 } while waiting for the map's level to come back
 local function NativeReentryWatch(Map)
-    Every(100, function()
+    Every(250, function()
         if NativeTrip then return false end
         if NativeLootOwn and Current and Current.Native and InTransition() then
             pcall(RepointOwnTables, Map, true)
@@ -2030,6 +2223,10 @@ local function NativeStartup()
     NativeReentryWatch(Map)
     Every(1000, function()
         NativeRegisterTick()
+        if NativeState.Ready then
+            local OkM, ErrM = pcall(MissionsTick)
+            if not OkM then LogOnce("missionstick", "missions: tick error %s", tostring(ErrM)) end
+        end
         if NativeState.Ready and not TriggerHooked then NativeHookTrigger() end
         if NativeState.Failed then
             NativeLogOnce("failed", "native: registration FAILED (%s); %s", NativeState.Failed,
@@ -2053,10 +2250,12 @@ local function NativeStartup()
             end
         end
         -- the game loaded the map's level itself (a save made in the map): exits, loot tables and map settings as after an entry
-        if NativeState.Ready and not Current and not NativeTrip and not NativeReturn and LevelTagNow() == NativeState.Tag
-            and not InTransition() then
-            local W = UEHelpers.GetWorld()
-            local S = Valid(W) and FindNativeEntry(W, NativeState.Sub) or nil
+        -- (cheap test first: in the Hub the map's streaming entry is not visible, and LevelTagNow() would scan every PRGameData object every 2 s)
+        local SaveW = (NativeState.Ready and not Current and not NativeTrip and not NativeReturn) and UEHelpers.GetWorld() or nil
+        local SaveS = Valid(SaveW) and FindNativeEntry(SaveW, NativeState.Sub) or nil
+        if SaveS and CallBool(SaveS, "IsLevelVisible") and LevelTagNow() == NativeState.Tag and not InTransition() then
+            local W = SaveW
+            local S = SaveS
             if S and CallBool(S, "IsLevelVisible") then
                 local M = ScanMarkers(Map, S)
                 local L = PawnLoc()
@@ -2064,6 +2263,7 @@ local function NativeStartup()
                     NativeState.Tag, L and FmtV(L) or "?", #M.All)
                 Current = { Map = Map, Stream = S, Return = nil, Phase = "active", Exits = {}, Native = true }
                 ArmExits(M)
+                MissionsProgression("save loaded in the map")
                 if not NativeLootOwn then
                     local OkR, NR = pcall(RepointOwnTables, Map, false)
                     NativeLootOwn = OkR and (NR or 0) > 0
@@ -2076,60 +2276,9 @@ local function NativeStartup()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- Map console variables (per map, config CVars = { ["r.ViewDistanceScale"] = 5, ... }): set while the map is the current
--- map (from the arrival, or from a save loaded in it), and put back to the values found before when it is left by any
--- way (exit, key, death, gate, the game loading another level). Values are read and written through KismetSystemLibrary.
+-- The map's console variables, the compass target and the player level / trigger-flag part of the progression unlock are Blueprint
+-- actors in the map pak (BP_ItrShowcase_MapSettings, _CompassSky, _Progression); nothing in this file ticks for them.
 ---------------------------------------------------------------------------------------------------------------------
-local CVarApplied = nil      -- { Map, Orig = { [name] = value found before } } while the map's values are set
-local function CVarKSL()
-    local Ok, K = pcall(StaticFindObject, "/Script/Engine.Default__KismetSystemLibrary")
-    if Ok and Valid(K) then return K end
-    return nil
-end
-local function CVarGet(K, Name)
-    local Ok, V = pcall(function() return K:GetConsoleVariableFloatValue(Name) end)
-    if Ok and type(V) == "number" then return V end
-    return nil
-end
-local function CVarSet(K, Name, Value)
-    local W = UEHelpers.GetWorld()
-    if not Valid(W) then return false end
-    local Ok = pcall(function() K:ExecuteConsoleCommand(W, string.format("%s %s", Name, tostring(Value)), nil) end)
-    return Ok
-end
-local function CVarTick()
-    local Want = Current and Opt(Current.Map, "CVars", nil) or nil
-    if type(Want) ~= "table" then Want = nil end
-    if CVarApplied and (not Want or CVarApplied.Map ~= Current.Map) then
-        local K = CVarKSL()
-        if not K then return end
-        local Parts = {}
-        for Name, V in pairs(CVarApplied.Orig) do
-            local Ok = CVarSet(K, Name, V)
-            table.insert(Parts, string.format("%s %s%s", Name, tostring(V), Ok and "" or " (FAILED)"))
-        end
-        Log("cvars: %s left; restored %s", CVarApplied.Map.Name, table.concat(Parts, ", "))
-        CVarApplied = nil
-    end
-    if Want and not CVarApplied then
-        local K = CVarKSL()
-        if not K then return end
-        local Orig, Parts = {}, {}
-        for Name, V in pairs(Want) do
-            local Before = CVarGet(K, Name)
-            if Before ~= nil then
-                Orig[Name] = Before
-                local Ok = CVarSet(K, Name, V)
-                table.insert(Parts, string.format("%s %s -> %s%s", Name, tostring(Before), tostring(V), Ok and "" or " (FAILED)"))
-            else
-                table.insert(Parts, string.format("%s: unknown cvar, skipped", Name))
-            end
-        end
-        CVarApplied = { Map = Current.Map, Orig = Orig }
-        Log("cvars: %s: %s", Current.Map.Name, table.concat(Parts, ", "))
-    end
-end
-Every(1000, function() CVarTick(); return false end, 30)
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Leaving
@@ -2216,9 +2365,9 @@ local function HubExitFinish(Start, Return)
     local MapLoaded = Valid(Current.Stream) and StreamActive(Current.Stream)
     Log("exit: Hub ready; the native Hub load left the map loaded: %s; player at %s, moved %.0f m since the exit began (%s)",
         tostring(MapLoaded), L and FmtV(L) or "?", Moved / 100, Moved > 5000 and "the game placed them" or "the game did not move them")
-    -- The game brings the Hub's sublevels back one after the other after the main Hub level turned visible (the first run judged
-    -- them at that moment and called 8 of 11 "not brought back", though all 9 were back a few seconds later): wait up to 20 s
-    -- for the ones it had loaded before, then judge.
+    -- The game brings the Hub's sublevels back one after the other after the main Hub level turned visible; judged at that
+    -- moment, levels that return a few seconds later would count as "not brought back". So wait up to 20 s for the ones it had
+    -- loaded before, then judge.
     local T0w = Now()
     local Ctx = { Judged = false }
     local function Finish()
@@ -2363,7 +2512,7 @@ local function Load(Map)
     -- LevelStreamingDynamic::LoadLevelInstance can't be called from UE4SS 3.0.1 Lua: after its bool out-parameter the
     -- next argument is read from the wrong stack slot. So do what LoadLevelInstance does inside: make a new streaming
     -- entry with LevelStreaming::CreateInstance (copies an existing dynamic entry under a unique name and adds it to the
-    -- world), point it at our package with PackageNameToLoad, place it at the origin, and load it.
+    -- world), point it at the map's package with PackageNameToLoad, place it at the origin, and load it.
     local Source = nil
     for _, S in ipairs(StreamingLevels(World)) do
         if S:GetClass():GetFName():ToString() == "LevelStreamingDynamic" then Source = S; break end
@@ -2516,6 +2665,8 @@ end
 
 -- Exit markers: checked twice a second while a map is loaded and settled
 LoopAsync(500, function()
+    local Cur = Current
+    if not Cur or Cur.Phase ~= "active" then return false end                  -- nothing to watch: no game-thread work at all
     ExecuteInGameThread(function()
         if not Current or Current.Phase ~= "active" or not Current.Exits or #Current.Exits == 0 then return end
         local Pawn = UEHelpers.GetPlayer()

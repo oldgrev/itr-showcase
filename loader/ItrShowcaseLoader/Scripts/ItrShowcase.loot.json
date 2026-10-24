@@ -1,29 +1,28 @@
 {
  "version": 1,
- "doc": "ITR Showcase loot manifest (T-051). Custom loot tags with tiered budgets (never the vanilla zone tags, whose budgets are save-wide) and custom generator IDs. aiMod reads it at mod-map load and adds each tag to DA_GameConfig.LootArray (TMap add: key = tag, LootTable = the DataTable asset table_asset if the map pak includes it, else the DataTable of source_tag (shares used points with that zone!); LootPoints = loot_points). Regenerate with loot_manifest.py.",
- "budget_rule": "loot_points = max(1, round(source_zone_budget * scale)); source_zone_budget = sum of the source zone's area tags of that category (e.g. Buffer Ammo = BlockPost 24 + CarDepot 20 + TrainStation 32); scale = our tier footprint ha / source zone footprint ha (density-2.7.2.md). Stash.* tags are zone-wide in 2.7.2 and scale the same way.",
+ "doc": "ITR Showcase loot manifest. Custom loot tags with tiered budgets (never the vanilla zone tags, whose budgets are save-wide) and custom generator IDs. The loader reads it at startup and adds each tag to the game config's LootArray (TMap add: key = tag, LootTable = the stock DataTable of source_tag, whose used points are shared with that zone; LootPoints = loot_points). While the map is loaded, the loader points each entry at the map's DataTable named by table_name / table_asset (held by BP_ItrShowcase_LootTables), and back at the stock table when the map goes.",
+ "budget_rule": "loot_points = max(1, round(source_zone_budget * scale)); source_zone_budget = sum of the source zone's area tags of that category (e.g. Buffer Ammo = BlockPost 24 + CarDepot 20 + TrainStation 32); scale = the tier's footprint in hectares / the source zone's footprint in hectares. Stash.* tags are zone-wide in 2.7.2 and scale the same way; a stash tag's budget is never below the points of the stash nodes placed on it.",
  "tiers": {
   "T1": {
    "source_zone": "Buffer",
-   "our_footprint_ha": 18,
+   "our_footprint_ha": 53.5,
    "zone_footprint_ha": 16,
-   "scale": 1.125,
+   "scale": 3.3438,
    "areas": [
-    "A0",
-    "A2",
-    "A3"
+    "P1"
    ],
    "donor_area": "TrainStation"
   },
   "T2": {
    "source_zone": "Construct",
-   "our_footprint_ha": 31,
+   "our_footprint_ha": 190.4,
    "zone_footprint_ha": 16,
-   "scale": 1.9375,
+   "scale": 11.9,
    "areas": [
-    "A1",
-    "A4",
-    "A5 Bridges (design.md: 3 ha, not in layout.areas)"
+    "P2",
+    "P3",
+    "P5",
+    "A5 Bridges (3 ha, not in the layout areas)"
    ],
    "donor_area": "Building"
   },
@@ -40,14 +39,38 @@
   },
   "T3": {
    "source_zone": "Factory",
-   "our_footprint_ha": 18,
+   "our_footprint_ha": 122.9,
    "zone_footprint_ha": 29,
-   "scale": 0.6207,
+   "scale": 4.2379,
    "areas": [
-    "A8",
-    "A9"
+    "P4",
+    "P6",
+    "P7"
    ],
    "donor_area": "Quarry"
+  },
+  "T4": {
+   "source_zone": "Kolhoz",
+   "our_footprint_ha": 180.7,
+   "zone_footprint_ha": 23,
+   "scale": 7.8565,
+   "areas": [
+    "P8",
+    "P9",
+    "P10"
+   ],
+   "donor_area": "Village"
+  },
+  "T5": {
+   "source_zone": "Castle",
+   "our_footprint_ha": 72.1,
+   "zone_footprint_ha": 10,
+   "scale": 7.21,
+   "areas": [
+    "P11",
+    "P12"
+   ],
+   "donor_area": "Coast"
   }
  },
  "tags": [
@@ -63,8 +86,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Ammo.DT_Loot_ItrShowcase_T1_Ammo",
    "source_zone_budget": 76,
    "source_area_tags": 3,
-   "scale": 1.125,
-   "loot_points": 86
+   "scale": 3.3438,
+   "loot_points": 254
   },
   {
    "tag": "Loot.ItrShowcase.T1.Equipment",
@@ -78,8 +101,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Equipment.DT_Loot_ItrShowcase_T1_Equipment",
    "source_zone_budget": 16,
    "source_area_tags": 3,
-   "scale": 1.125,
-   "loot_points": 18
+   "scale": 3.3438,
+   "loot_points": 54
   },
   {
    "tag": "Loot.ItrShowcase.T1.FoodBaseItem",
@@ -93,8 +116,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_FoodBaseItem.DT_Loot_ItrShowcase_T1_FoodBaseItem",
    "source_zone_budget": 32,
    "source_area_tags": 3,
-   "scale": 1.125,
-   "loot_points": 36
+   "scale": 3.3438,
+   "loot_points": 107
   },
   {
    "tag": "Loot.ItrShowcase.T1.Stash.Valuables",
@@ -108,8 +131,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Stash_Valuables.DT_Loot_ItrShowcase_T1_Stash_Valuables",
    "source_zone_budget": 3,
    "source_area_tags": 1,
-   "scale": 1.125,
-   "loot_points": 3
+   "scale": 3.3438,
+   "loot_points": 10
   },
   {
    "tag": "Loot.ItrShowcase.T1.Stash.Red",
@@ -123,8 +146,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Stash_Red.DT_Loot_ItrShowcase_T1_Stash_Red",
    "source_zone_budget": 30,
    "source_area_tags": 1,
-   "scale": 1.125,
-   "loot_points": 34
+   "scale": 3.3438,
+   "loot_points": 100
   },
   {
    "tag": "Loot.ItrShowcase.T1.Stash.Grey",
@@ -138,8 +161,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Stash_Grey.DT_Loot_ItrShowcase_T1_Stash_Grey",
    "source_zone_budget": 27,
    "source_area_tags": 1,
-   "scale": 1.125,
-   "loot_points": 30
+   "scale": 3.3438,
+   "loot_points": 90
   },
   {
    "tag": "Loot.ItrShowcase.T1.Stash.Deadmans",
@@ -153,8 +176,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Stash_Deadmans.DT_Loot_ItrShowcase_T1_Stash_Deadmans",
    "source_zone_budget": 30,
    "source_area_tags": 1,
-   "scale": 1.125,
-   "loot_points": 34
+   "scale": 3.3438,
+   "loot_points": 100
   },
   {
    "tag": "Loot.ItrShowcase.T2.Ammo",
@@ -168,8 +191,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Ammo.DT_Loot_ItrShowcase_T2_Ammo",
    "source_zone_budget": 52,
    "source_area_tags": 3,
-   "scale": 1.9375,
-   "loot_points": 101
+   "scale": 11.9,
+   "loot_points": 619
   },
   {
    "tag": "Loot.ItrShowcase.T2.Equipment",
@@ -183,8 +206,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Equipment.DT_Loot_ItrShowcase_T2_Equipment",
    "source_zone_budget": 14,
    "source_area_tags": 3,
-   "scale": 1.9375,
-   "loot_points": 27
+   "scale": 11.9,
+   "loot_points": 167
   },
   {
    "tag": "Loot.ItrShowcase.T2.FoodBaseItem",
@@ -198,8 +221,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_FoodBaseItem.DT_Loot_ItrShowcase_T2_FoodBaseItem",
    "source_zone_budget": 20,
    "source_area_tags": 3,
-   "scale": 1.9375,
-   "loot_points": 39
+   "scale": 11.9,
+   "loot_points": 238
   },
   {
    "tag": "Loot.ItrShowcase.T2.Stash.Valuables",
@@ -213,8 +236,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Stash_Valuables.DT_Loot_ItrShowcase_T2_Stash_Valuables",
    "source_zone_budget": 3,
    "source_area_tags": 1,
-   "scale": 1.9375,
-   "loot_points": 6
+   "scale": 11.9,
+   "loot_points": 36
   },
   {
    "tag": "Loot.ItrShowcase.T2.Stash.Red",
@@ -228,8 +251,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Stash_Red.DT_Loot_ItrShowcase_T2_Stash_Red",
    "source_zone_budget": 30,
    "source_area_tags": 1,
-   "scale": 1.9375,
-   "loot_points": 58
+   "scale": 11.9,
+   "loot_points": 357
   },
   {
    "tag": "Loot.ItrShowcase.T2.Stash.Grey",
@@ -243,8 +266,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Stash_Grey.DT_Loot_ItrShowcase_T2_Stash_Grey",
    "source_zone_budget": 27,
    "source_area_tags": 1,
-   "scale": 1.9375,
-   "loot_points": 52
+   "scale": 11.9,
+   "loot_points": 321
   },
   {
    "tag": "Loot.ItrShowcase.T2.Stash.Grey_Exist",
@@ -258,8 +281,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Stash_Grey_Exist.DT_Loot_ItrShowcase_T2_Stash_Grey_Exist",
    "source_zone_budget": 18,
    "source_area_tags": 1,
-   "scale": 1.9375,
-   "loot_points": 35
+   "scale": 11.9,
+   "loot_points": 214
   },
   {
    "tag": "Loot.ItrShowcase.T2.Stash.Deadmans",
@@ -273,8 +296,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Stash_Deadmans.DT_Loot_ItrShowcase_T2_Stash_Deadmans",
    "source_zone_budget": 30,
    "source_area_tags": 1,
-   "scale": 1.9375,
-   "loot_points": 58
+   "scale": 11.9,
+   "loot_points": 357
   },
   {
    "tag": "Loot.ItrShowcase.T25.Ammo",
@@ -408,8 +431,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Ammo.DT_Loot_ItrShowcase_T3_Ammo",
    "source_zone_budget": 169,
    "source_area_tags": 4,
-   "scale": 0.6207,
-   "loot_points": 105
+   "scale": 4.2379,
+   "loot_points": 716
   },
   {
    "tag": "Loot.ItrShowcase.T3.Equipment",
@@ -423,8 +446,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Equipment.DT_Loot_ItrShowcase_T3_Equipment",
    "source_zone_budget": 29,
    "source_area_tags": 4,
-   "scale": 0.6207,
-   "loot_points": 18
+   "scale": 4.2379,
+   "loot_points": 123
   },
   {
    "tag": "Loot.ItrShowcase.T3.FoodBaseItem",
@@ -438,8 +461,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_FoodBaseItem.DT_Loot_ItrShowcase_T3_FoodBaseItem",
    "source_zone_budget": 64,
    "source_area_tags": 4,
-   "scale": 0.6207,
-   "loot_points": 40
+   "scale": 4.2379,
+   "loot_points": 271
   },
   {
    "tag": "Loot.ItrShowcase.T3.Stash.Valuables",
@@ -453,8 +476,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Stash_Valuables.DT_Loot_ItrShowcase_T3_Stash_Valuables",
    "source_zone_budget": 5,
    "source_area_tags": 1,
-   "scale": 0.6207,
-   "loot_points": 3
+   "scale": 4.2379,
+   "loot_points": 21
   },
   {
    "tag": "Loot.ItrShowcase.T3.Stash.Red",
@@ -468,8 +491,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Stash_Red.DT_Loot_ItrShowcase_T3_Stash_Red",
    "source_zone_budget": 75,
    "source_area_tags": 1,
-   "scale": 0.6207,
-   "loot_points": 47
+   "scale": 4.2379,
+   "loot_points": 318
   },
   {
    "tag": "Loot.ItrShowcase.T3.Stash.Grey",
@@ -483,8 +506,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Stash_Grey.DT_Loot_ItrShowcase_T3_Stash_Grey",
    "source_zone_budget": 72,
    "source_area_tags": 1,
-   "scale": 0.6207,
-   "loot_points": 45
+   "scale": 4.2379,
+   "loot_points": 432
   },
   {
    "tag": "Loot.ItrShowcase.T3.Stash.Grey_Exist",
@@ -498,8 +521,8 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Stash_Grey_Exist.DT_Loot_ItrShowcase_T3_Stash_Grey_Exist",
    "source_zone_budget": 45,
    "source_area_tags": 1,
-   "scale": 0.6207,
-   "loot_points": 28
+   "scale": 4.2379,
+   "loot_points": 191
   },
   {
    "tag": "Loot.ItrShowcase.T3.Stash.Deadmans",
@@ -513,8 +536,338 @@
    "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Stash_Deadmans.DT_Loot_ItrShowcase_T3_Stash_Deadmans",
    "source_zone_budget": 45,
    "source_area_tags": 1,
-   "scale": 0.6207,
-   "loot_points": 28
+   "scale": 4.2379,
+   "loot_points": 191
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Ammo",
+   "tier": "T4",
+   "category": "Ammo",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Kolhoz.Village.Ammo",
+   "datatable": "DT_Loot_Kolhoz_Village_Ammo",
+   "table_name": "DT_Loot_ItrShowcase_T4_Ammo",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Ammo.DT_Loot_ItrShowcase_T4_Ammo",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Ammo.DT_Loot_ItrShowcase_T4_Ammo",
+   "source_zone_budget": 180,
+   "source_area_tags": 4,
+   "scale": 7.8565,
+   "loot_points": 1414
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Equipment",
+   "tier": "T4",
+   "category": "Equipment",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Kolhoz.Village.Equipment",
+   "datatable": "DT_Loot_Kolhoz_Village_Equipment",
+   "table_name": "DT_Loot_ItrShowcase_T4_Equipment",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Equipment.DT_Loot_ItrShowcase_T4_Equipment",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Equipment.DT_Loot_ItrShowcase_T4_Equipment",
+   "source_zone_budget": 41,
+   "source_area_tags": 4,
+   "scale": 7.8565,
+   "loot_points": 322
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.FoodBaseItem",
+   "tier": "T4",
+   "category": "FoodBaseItem",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Kolhoz.Village.FoodBaseItem",
+   "datatable": "DT_Loot_Kolhoz_Village_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T4_FoodBaseItem",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_FoodBaseItem.DT_Loot_ItrShowcase_T4_FoodBaseItem",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_FoodBaseItem.DT_Loot_ItrShowcase_T4_FoodBaseItem",
+   "source_zone_budget": 76,
+   "source_area_tags": 4,
+   "scale": 7.8565,
+   "loot_points": 597
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Stash.Valuables",
+   "tier": "T4",
+   "category": "Stash.Valuables",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Kolhoz.Stash.Valuables",
+   "datatable": "DT_Loot_Kolhoz_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T4_Stash_Valuables",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Valuables.DT_Loot_ItrShowcase_T4_Stash_Valuables",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Valuables.DT_Loot_ItrShowcase_T4_Stash_Valuables",
+   "source_zone_budget": 5,
+   "source_area_tags": 1,
+   "scale": 7.8565,
+   "loot_points": 39
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Stash.Red",
+   "tier": "T4",
+   "category": "Stash.Red",
+   "node_class": "BP_Stash_Small",
+   "source_tag": "Loot.Kolhoz.Stash.Red",
+   "datatable": "DT_Loot_Kolhoz_StashRed",
+   "table_name": "DT_Loot_ItrShowcase_T4_Stash_Red",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Red.DT_Loot_ItrShowcase_T4_Stash_Red",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Red.DT_Loot_ItrShowcase_T4_Stash_Red",
+   "source_zone_budget": 75,
+   "source_area_tags": 1,
+   "scale": 7.8565,
+   "loot_points": 589
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Stash.Grey",
+   "tier": "T4",
+   "category": "Stash.Grey",
+   "node_class": "BP_Stash_Large",
+   "source_tag": "Loot.Kolhoz.Stash.Grey",
+   "datatable": "DT_Loot_Kolhoz_StashGrey",
+   "table_name": "DT_Loot_ItrShowcase_T4_Stash_Grey",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Grey.DT_Loot_ItrShowcase_T4_Stash_Grey",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Grey.DT_Loot_ItrShowcase_T4_Stash_Grey",
+   "source_zone_budget": 72,
+   "source_area_tags": 1,
+   "scale": 7.8565,
+   "loot_points": 566
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Stash.Grey_Exist",
+   "tier": "T4",
+   "category": "Stash.Grey_Exist",
+   "node_class": "BP_Stash_Large (guaranteed stashes)",
+   "source_tag": "Loot.Kolhoz.Stash.Grey_Exist",
+   "datatable": "DT_Loot_Kolhoz_StashGrey_Existable",
+   "table_name": "DT_Loot_ItrShowcase_T4_Stash_Grey_Exist",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Grey_Exist.DT_Loot_ItrShowcase_T4_Stash_Grey_Exist",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Grey_Exist.DT_Loot_ItrShowcase_T4_Stash_Grey_Exist",
+   "source_zone_budget": 45,
+   "source_area_tags": 1,
+   "scale": 7.8565,
+   "loot_points": 354
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Stash.Deadmans",
+   "tier": "T4",
+   "category": "Stash.Deadmans",
+   "node_class": "BP_Corpse",
+   "source_tag": "Loot.Kolhoz.Stash.Deadmans",
+   "datatable": "DT_Loot_Kolhoz_DeadMan",
+   "table_name": "DT_Loot_ItrShowcase_T4_Stash_Deadmans",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Deadmans.DT_Loot_ItrShowcase_T4_Stash_Deadmans",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Stash_Deadmans.DT_Loot_ItrShowcase_T4_Stash_Deadmans",
+   "source_zone_budget": 45,
+   "source_area_tags": 1,
+   "scale": 7.8565,
+   "loot_points": 354
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Ammo",
+   "tier": "T5",
+   "category": "Ammo",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Castle.Coast.Ammo",
+   "datatable": "DT_Loot_Castle_Coast_Ammo",
+   "table_name": "DT_Loot_ItrShowcase_T5_Ammo",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Ammo.DT_Loot_ItrShowcase_T5_Ammo",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Ammo.DT_Loot_ItrShowcase_T5_Ammo",
+   "source_zone_budget": 144,
+   "source_area_tags": 3,
+   "scale": 7.21,
+   "loot_points": 1038
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Equipment",
+   "tier": "T5",
+   "category": "Equipment",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Castle.Coast.Equipment",
+   "datatable": "DT_Loot_Castle_Coast_Equipment",
+   "table_name": "DT_Loot_ItrShowcase_T5_Equipment",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Equipment.DT_Loot_ItrShowcase_T5_Equipment",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Equipment.DT_Loot_ItrShowcase_T5_Equipment",
+   "source_zone_budget": 18,
+   "source_area_tags": 3,
+   "scale": 7.21,
+   "loot_points": 130
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.FoodBaseItem",
+   "tier": "T5",
+   "category": "FoodBaseItem",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Castle.Coast.FoodBaseItem",
+   "datatable": "DT_Loot_Castle_Coast_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T5_FoodBaseItem",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_FoodBaseItem.DT_Loot_ItrShowcase_T5_FoodBaseItem",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_FoodBaseItem.DT_Loot_ItrShowcase_T5_FoodBaseItem",
+   "source_zone_budget": 39,
+   "source_area_tags": 3,
+   "scale": 7.21,
+   "loot_points": 281
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Stash.Valuables",
+   "tier": "T5",
+   "category": "Stash.Valuables",
+   "node_class": "BP_RandomLoot",
+   "source_tag": "Loot.Castle.Stash.Valuables",
+   "datatable": "DT_Loot_Castle_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T5_Stash_Valuables",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Valuables.DT_Loot_ItrShowcase_T5_Stash_Valuables",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Valuables.DT_Loot_ItrShowcase_T5_Stash_Valuables",
+   "source_zone_budget": 2,
+   "source_area_tags": 1,
+   "scale": 7.21,
+   "loot_points": 14
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Stash.Red",
+   "tier": "T5",
+   "category": "Stash.Red",
+   "node_class": "BP_Stash_Small",
+   "source_tag": "Loot.Castle.Stash.Red",
+   "datatable": "DT_Loot_Castle_StashRed",
+   "table_name": "DT_Loot_ItrShowcase_T5_Stash_Red",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Red.DT_Loot_ItrShowcase_T5_Stash_Red",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Red.DT_Loot_ItrShowcase_T5_Stash_Red",
+   "source_zone_budget": 20,
+   "source_area_tags": 1,
+   "scale": 7.21,
+   "loot_points": 144
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Stash.Grey",
+   "tier": "T5",
+   "category": "Stash.Grey",
+   "node_class": "BP_Stash_Large",
+   "source_tag": "Loot.Castle.Stash.Grey",
+   "datatable": "DT_Loot_Castle_StashGrey",
+   "table_name": "DT_Loot_ItrShowcase_T5_Stash_Grey",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Grey.DT_Loot_ItrShowcase_T5_Stash_Grey",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Grey.DT_Loot_ItrShowcase_T5_Stash_Grey",
+   "source_zone_budget": 36,
+   "source_area_tags": 1,
+   "scale": 7.21,
+   "loot_points": 279
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Stash.Grey_Exist",
+   "tier": "T5",
+   "category": "Stash.Grey_Exist",
+   "node_class": "BP_Stash_Large (guaranteed stashes)",
+   "source_tag": "Loot.Castle.Stash.Grey_Exist",
+   "datatable": "DT_Loot_Castle_StashGrey_Existance",
+   "table_name": "DT_Loot_ItrShowcase_T5_Stash_Grey_Exist",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Grey_Exist.DT_Loot_ItrShowcase_T5_Stash_Grey_Exist",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Grey_Exist.DT_Loot_ItrShowcase_T5_Stash_Grey_Exist",
+   "source_zone_budget": 18,
+   "source_area_tags": 1,
+   "scale": 7.21,
+   "loot_points": 130
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Stash.Deadmans",
+   "tier": "T5",
+   "category": "Stash.Deadmans",
+   "node_class": "BP_Corpse",
+   "source_tag": "Loot.Castle.Stash.Deadmans",
+   "datatable": "DT_Loot_Castle_DeadMan",
+   "table_name": "DT_Loot_ItrShowcase_T5_Stash_Deadmans",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Deadmans.DT_Loot_ItrShowcase_T5_Stash_Deadmans",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Stash_Deadmans.DT_Loot_ItrShowcase_T5_Stash_Deadmans",
+   "source_zone_budget": 30,
+   "source_area_tags": 1,
+   "scale": 7.21,
+   "loot_points": 216
+  },
+  {
+   "tag": "Loot.ItrShowcase.T1.Artifact",
+   "tier": "T1",
+   "category": "Artifact",
+   "node_class": "BP_RandomLoot (artifact spawn)",
+   "source_tag": "Loot.Buffer.Stash.Valuables",
+   "datatable": "DT_Loot_Buffer_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T1_Artifact",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Artifact.DT_Loot_ItrShowcase_T1_Artifact",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Artifact.DT_Loot_ItrShowcase_T1_Artifact",
+   "source_zone_budget": 3,
+   "source_area_tags": 1,
+   "scale": null,
+   "loot_points": 48
+  },
+  {
+   "tag": "Loot.ItrShowcase.T2.Artifact",
+   "tier": "T2",
+   "category": "Artifact",
+   "node_class": "BP_RandomLoot (artifact spawn)",
+   "source_tag": "Loot.Construct.Stash.Valuables",
+   "datatable": "DT_Loot_Construct_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T2_Artifact",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Artifact.DT_Loot_ItrShowcase_T2_Artifact",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Artifact.DT_Loot_ItrShowcase_T2_Artifact",
+   "source_zone_budget": 3,
+   "source_area_tags": 1,
+   "scale": null,
+   "loot_points": 90
+  },
+  {
+   "tag": "Loot.ItrShowcase.T2P2.Artifact",
+   "tier": "T2P2",
+   "category": "Artifact",
+   "node_class": "BP_RandomLoot (artifact spawn)",
+   "source_tag": "Loot.Construct.Stash.Valuables",
+   "datatable": "DT_Loot_Construct_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T2P2_Artifact",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2P2_Artifact.DT_Loot_ItrShowcase_T2P2_Artifact",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2P2_Artifact.DT_Loot_ItrShowcase_T2P2_Artifact",
+   "source_zone_budget": 3,
+   "source_area_tags": 1,
+   "scale": null,
+   "loot_points": 32
+  },
+  {
+   "tag": "Loot.ItrShowcase.T3.Artifact",
+   "tier": "T3",
+   "category": "Artifact",
+   "node_class": "BP_RandomLoot (artifact spawn)",
+   "source_tag": "Loot.Factory.Stash.Valuables",
+   "datatable": "DT_Loot_Factory_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T3_Artifact",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Artifact.DT_Loot_ItrShowcase_T3_Artifact",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Artifact.DT_Loot_ItrShowcase_T3_Artifact",
+   "source_zone_budget": 5,
+   "source_area_tags": 1,
+   "scale": null,
+   "loot_points": 65
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Artifact",
+   "tier": "T4",
+   "category": "Artifact",
+   "node_class": "BP_RandomLoot (artifact spawn)",
+   "source_tag": "Loot.Kolhoz.Stash.Valuables",
+   "datatable": "DT_Loot_Kolhoz_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T4_Artifact",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Artifact.DT_Loot_ItrShowcase_T4_Artifact",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Artifact.DT_Loot_ItrShowcase_T4_Artifact",
+   "source_zone_budget": 5,
+   "source_area_tags": 1,
+   "scale": null,
+   "loot_points": 90
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Artifact",
+   "tier": "T5",
+   "category": "Artifact",
+   "node_class": "BP_RandomLoot (artifact spawn)",
+   "source_tag": "Loot.Castle.Stash.Valuables",
+   "datatable": "DT_Loot_Castle_Valuables",
+   "table_name": "DT_Loot_ItrShowcase_T5_Artifact",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Artifact.DT_Loot_ItrShowcase_T5_Artifact",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Artifact.DT_Loot_ItrShowcase_T5_Artifact",
+   "source_zone_budget": 2,
+   "source_area_tags": 1,
+   "scale": null,
+   "loot_points": 36
   },
   {
    "tag": "Loot.ItrShowcase.G2.Ammo",
@@ -761,9 +1114,28 @@
    "spot_name": "the expedition camp",
    "area": "A8",
    "story": "the party's last cache: camera, monocular, detector, heal injector"
+  },
+  {
+   "tag": "Loot.ItrShowcase.SIG.IZ27.Stash.Grey_Exist",
+   "tier": "SIG.IZ27",
+   "category": "Stash.Grey_Exist",
+   "node_class": "BP_Stash_Large (guaranteed stash at a strange spot)",
+   "source_tag": "Loot.Factory.Stash.Grey_Exist",
+   "datatable": "DT_Loot_Factory_StashGrey_Existance",
+   "table_name": "DT_Loot_ItrShowcase_SIG_IZ27_Stash_Grey_Exist",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_SIG_IZ27_Stash_Grey_Exist.DT_Loot_ItrShowcase_SIG_IZ27_Stash_Grey_Exist",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_SIG_IZ27_Stash_Grey_Exist.DT_Loot_ItrShowcase_SIG_IZ27_Stash_Grey_Exist",
+   "source_zone_budget": 45,
+   "source_area_tags": 1,
+   "scale": null,
+   "loot_points": 12,
+   "spot": "IZ27",
+   "spot_name": "the forester's IZ27",
+   "area": "P2",
+   "story": "the forester's shotgun in the lodge's gun cabinet: the IZ-27 and a box of buckshot (always the same)"
   }
  ],
- "tables_doc": "Table rows come from gen/tools/loot_tiers.py (tier recipes, T-100), written by gen/tools/loot_tables.py; the donor in source_tag/datatable is the fallback when a pak lacks the table. Tags with tier SIG.Sn are the signature stashes of the strange spots S1-S9.",
+ "tables_doc": "Table rows come from the map generator's loot tier recipes; the donor in source_tag/datatable is the fallback when a pak lacks the table. Tags with tier SIG.<id> are the signature stashes of the map's strange spots.",
  "generator_rule": "max(1, round(footprint_ha * 0.19)) IDs per area (2.7.2: 0.12-0.19 generators per footprint ha)",
  "generators": [
   {

@@ -1,0 +1,244 @@
+{
+ "category": {
+  "tag": "Mission.Category.Showcase",
+  "max_simultaneously": 1,
+  "once_in_a_life": true
+ },
+ "level_tag": "Level.Zone.ItrShowcase",
+ "missions": [
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr1.Any",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P1",
+   "after": null
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr1.Blank",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P2",
+   "after": "Mission.ID.Generic.Artifacts.Tr1.Any"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr1.Night",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P3",
+   "after": "Mission.ID.Generic.Artifacts.Tr1.Blank"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr1.Steps",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P4",
+   "after": "Mission.ID.Generic.Artifacts.Tr1.Night"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr2.Blank",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P5",
+   "after": "Mission.ID.Generic.Artifacts.Tr1.Steps"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr2.Night",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P6",
+   "after": "Mission.ID.Generic.Artifacts.Tr2.Blank"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr2.Regen",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P7",
+   "after": "Mission.ID.Generic.Artifacts.Tr2.Night"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr3.Night",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P8",
+   "after": "Mission.ID.Generic.Artifacts.Tr2.Regen"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr3.Regen",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P9",
+   "after": "Mission.ID.Generic.Artifacts.Tr3.Night"
+  },
+  {
+   "id": "Mission.ID.Generic.Artifacts.Tr3.Time",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P10",
+   "after": "Mission.ID.Generic.Artifacts.Tr3.Regen"
+  },
+  {
+   "id": "Mission.ID.Generic.Fetch.Buffer.Tr1",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P11",
+   "after": "Mission.ID.Generic.Artifacts.Tr3.Time"
+  },
+  {
+   "id": "Mission.ID.Generic.Fetch.Construct.Tr1",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_P12",
+   "after": "Mission.ID.Generic.Fetch.Buffer.Tr1"
+  }
+ ],
+ "pool": [
+  {
+   "id": "Mission.ID.Generic.Fetch.Factory.Tr1",
+   "category": "Mission.Category.Generic.Group1",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Docs_P1"
+  },
+  {
+   "id": "Mission.ID.Generic.Fetch.Tr1.Container1",
+   "category": "Mission.Category.Generic.Group1",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Box_P5"
+  },
+  {
+   "id": "Mission.ID.Generic.Fetch.Tr1.Container2",
+   "category": "Mission.Category.Generic.Group1",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Container_P8"
+  },
+  {
+   "id": "Mission.ID.Generic.Fetch.Tr1.Documents1",
+   "category": "Mission.Category.Generic.Group2",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Art_P2"
+  },
+  {
+   "id": "Mission.ID.Generic.Fetch.Tr2.Container1",
+   "category": "Mission.Category.Generic.Group2",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Art_P12"
+  },
+  {
+   "id": "Mission.ID.Generic.Fetch.Tr2.Film",
+   "category": "Mission.Category.Generic.Group3",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Kill_P3"
+  },
+  {
+   "id": "Mission.ID.Generic.Group5.Castle.Bracelet2",
+   "category": "Mission.Category.Generic.Group3",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Kill_P9"
+  },
+  {
+   "id": "Mission.ID.Generic.Kill.Buffer.Tr1",
+   "category": "Mission.Category.Generic.Group4",
+   "asset": "/Game/Mods/ItrShowcase/Missions/DA_ItrShowcase_Pool_Photo_P4"
+  }
+ ],
+ "points": [
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_11",
+   "x": -79000.0,
+   "y": -11200.0,
+   "z": 2576.2
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_12",
+   "x": 62500.0,
+   "y": 14370.0,
+   "z": 3436.4
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_13",
+   "x": 113500.0,
+   "y": 6900.0,
+   "z": 10495.8
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_14",
+   "x": 103230.0,
+   "y": 104210.0,
+   "z": 1434.8
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_15",
+   "x": -93500.0,
+   "y": -105000.0,
+   "z": 2850.5
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_16",
+   "x": -110500.0,
+   "y": 103000.0,
+   "z": 3173.9
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_17",
+   "x": -34500.0,
+   "y": -105000.0,
+   "z": 263.8
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_18",
+   "x": -15000.0,
+   "y": -15000.0,
+   "z": 172.3
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_19",
+   "x": -9290.0,
+   "y": 94710.0,
+   "z": 252.8
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_20",
+   "x": 12160.0,
+   "y": -1690.0,
+   "z": 88.8
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_21",
+   "x": 43000.0,
+   "y": 73500.0,
+   "z": 3655.2
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_22",
+   "x": 70000.0,
+   "y": -62500.0,
+   "z": 4193.4
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_23",
+   "x": 105000.0,
+   "y": 103000.0,
+   "z": 1420.8
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr1.Obj_24",
+   "x": -93500.0,
+   "y": -106000.0,
+   "z": 2849.7
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr2.Obj_11",
+   "x": -16500.0,
+   "y": -18500.0,
+   "z": 150.5
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr2.Obj_12",
+   "x": 44000.0,
+   "y": 72500.0,
+   "z": 3663.8
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr2.Obj_13",
+   "x": -77950.0,
+   "y": -13810.0,
+   "z": 2448.9
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr2.Obj_14",
+   "x": -110000.0,
+   "y": 104000.0,
+   "z": 3176.2
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr2.Obj_15",
+   "x": 70310.0,
+   "y": -62950.0,
+   "z": 4192.7
+  },
+  {
+   "tag": "Mission.Point.Area06.Generic.FetchTr2.Obj_16",
+   "x": -34660.0,
+   "y": -105360.0,
+   "z": 243.4
+  }
+ ],
+ "progression": {
+  "_doc": "the player level and the trigger flags are set by BP_ItrShowcase_Progression; only the visited levels (a Blueprint-read-only array) stay here",
+  "visited_levels": [
+   "Level.Zone.Buffer",
+   "Level.Zone.Construct",
+   "Level.Zone.Factory",
+   "Level.Zone.Kolhoz",
+   "Level.Zone.Castle"
+  ]
+ }
+}

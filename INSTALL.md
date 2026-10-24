@@ -27,8 +27,8 @@ IntoTheRadius\Content\Paks\UE4SS-settings.ini              settings (changed val
 IntoTheRadius\Content\Paks\UE4SS-LICENSE.txt               UE4SS licence (MIT)
 IntoTheRadius\Content\Paks\LuaMods\shared\UEHelpers\UEHelpers.lua    helper the loader requires
 IntoTheRadius\Content\Paks\LuaMods\ItrShowcaseLoader\enabled.txt     turns the loader on
-IntoTheRadius\Content\Paks\LuaMods\ItrShowcaseLoader\Scripts\main.lua, config.lua, ItrShowcase.loot.json
-IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak        the map (about 205 MB)
+IntoTheRadius\Content\Paks\LuaMods\ItrShowcaseLoader\Scripts\main.lua, config.lua, missions.lua, ItrShowcase.loot.json, ItrShowcase.missions.json
+IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak        the map (about 480 MB)
 ```
 The normal archive also has `ITR-Showcase-INSTALL.md` (this file) at its root; you can delete it after unzipping.
 
@@ -65,6 +65,19 @@ Two UE4SS copies must not be installed side by side. If one is installed:
   dev build (v3.0.1-1165-g12ec45a0) crashed the game a few seconds after start in our tests.
 - Use the settings in the next section.
 
+## ITRMapLoader (the example map loader from itr-common)
+The showcase does not need it, and the showcase was tested with it switched off. The two mods are written to run side by side (each
+has its own folder, log tag, key, console command and Hub item: F10, `itrmap` and the sugar cube for ITRMapLoader), but that
+combination has not been tested with this release. Switch ITRMapLoader off while you play the showcase:
+- **Standard layout:** set `ITRMapLoader : 0` in `ue4ss\Mods\mods.txt`, and rename `ue4ss\Mods\ITRMapLoader\enabled.txt` to
+  `enabled.txt.off`.
+- **Nexus layout:** rename `Content\Paks\LuaMods\ITRMapLoader\enabled.txt` to `enabled.txt.off` (and set `ITRMapLoader : 0` if you
+  made a `mods.txt` there).
+
+Remove the `enabled.txt` as well as the `mods.txt` line: a mod folder with an `enabled.txt` can start without a `mods.txt` line. The
+release archives contain no `mods.txt` and no ITRMapLoader, so they never switch it on or off; only a copy you installed yourself
+can be running.
+
 ## UE4SS settings
 The included `UE4SS-settings.ini` is the Nexus file with these values. They are the ones the loader was tested with; if you keep
 your own ini, set them too:
@@ -85,19 +98,24 @@ command and runs timers, which rely on them; `HookBeginPlay` is the only one it 
 
 ## Play
 Start the game, press Continue and wait in the Hub. Then:
-- pick up the **pumice stone** (the only one in the Hub), or
+- pick up the **tin of graphite grease** in the Hub's workshop corner, by the tool wall and workbench (a grey metal tin with a yellow
+  lid and a "GRAPHITE GREASE 500g" label; the loader recognises it by its static mesh, `Liquid08_1`). It stands with a second tin and
+  a loose lid, which do nothing; if the first tin you pick up does nothing, try its neighbour, or
 - press **F9**, or
 - run the console command `itrshowcase enter`. This release does not add a console; it works from one you already have, or from
   a mod that sends console commands.
 
 The game runs its normal level transition and you arrive at the start in the south, with the map's spawners, loot and
 anomalies running. The map is a registered level (`Level.Zone.ItrShowcase`) that copies the Buffer zone's settings, so game time
-passes, and stamina and hunger run, as in a stock zone. While you are in the map the loader sets `r.ViewDistanceScale 5` and
-`foliage.LODDistanceScale 5` and puts the earlier values back when you leave.
+passes, and stamina and hunger run, as in a stock zone. While you are in the map the map sets `r.ViewDistanceScale 5` and
+`foliage.LODDistanceScale 5` (a Blueprint in the map pak) and puts the earlier values back when you leave.
 
-**Leaving:** walk onto one of the **return pads** (R0 to R4, a flat disc with a beam; the loader exit is on the pad), or press
+The mission computer in the Hub offers the showcase missions once the loader is running (see "Showcase missions and uninstalling" in
+the README before you remove the mod). The map has a compass and a tablet map, and a printed map board at the entrance.
+
+**Leaving:** walk onto one of the **return pads** (R0 to R6, a flat disc with a beam; the loader exit is on the pad), or press
 `F9`, or type `itrshowcase leave`. You go back to the Hub through the same transition. The cyan "to entrance" pads beside
-R1 to R4 only move you around inside the map.
+R1 to R6 only move you around inside the map.
 
 **The edge of the map** is a square fog wall about 1.25 km from the centre, driven by a child of the game's `BP_TideBase`, so walking
 into it should trigger the game's normal fog transition and put you back inside at one of the map's respawn splines. That
@@ -111,14 +129,16 @@ transition has not been through a full VR test since native loading came in.
   the saved level to the Hub. The cause is not found yet.
 - **Sun and sky light intensity are not applied yet.** The intended default for both is 1.0; the level in the pak still carries
   3.0, so the map looks brighter than planned. The first attempt at the fix did not reach the saved level; a new one is pending.
-- Layout and dressing are still being reworked: some towers and houses lack a ladder, one bathhouse faces away from the lake and a
-  lake-island stash drops into the water. The gameplay setup, which is what this repo is for, is the part to look at.
+- Layout and dressing are still being tuned from walk tests: ground and foliage colour, enemy pressure, and where stashes and rifts
+  sit. The gameplay setup, which is what this repo is for, is the part to look at.
 - Loot balance is still being tuned.
+- The game can crash while it shuts down. The same crash is in sessions without any mod installed, so it is not caused by this map
+  or the loader.
 
 ## Troubleshooting
 - **The game hangs at startup** (no window, about 12 MB of memory): `UE4SS.dll` is not where `override.txt` points. It has to sit
   directly in `IntoTheRadius\Content\Paks`, not in a subfolder.
-- **Nothing happens at the pumice stone:** open `Content\Paks\UE4SS.log`. No `[ItrShowcaseLoader]` lines means the loader did
+- **Nothing happens at the grease tin:** open `Content\Paks\UE4SS.log`. No `[ItrShowcaseLoader]` lines means the loader did
   not start: check that `LuaMods\ItrShowcaseLoader\enabled.txt` exists and `ModsFolderPath` is `./LuaMods`. A line `ready: ...`
   and later `native: READY` means it is waiting for you in the Hub.
 - **The loader is ready but the map does not load:** the pak has to be in `Content\Paks\~mods` and named
@@ -126,7 +146,7 @@ transition has not been through a full VR test since native loading came in.
 
 ## Uninstall
 Leave the map first and let the Hub autosave run, because a save made inside the map names a level only the loader registers.
-Then delete `Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak` and `Content\Paks\LuaMods\ItrShowcaseLoader`. To remove the
+If the save holds a showcase mission, read "Showcase missions and uninstalling" in the README first. Then delete `Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak` and `Content\Paks\LuaMods\ItrShowcaseLoader`. To remove the
 bundled UE4SS as well: `Binaries\Win64\dwmapi.dll` and `override.txt`, and from `Content\Paks` the files `UE4SS.dll`,
 `UE4SS-settings.ini`, `UE4SS-LICENSE.txt`, `UE4SS.log` and `LuaMods\shared`. In Vortex, disable or remove the mod and purge.
 
