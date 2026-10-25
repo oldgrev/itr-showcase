@@ -706,6 +706,11 @@ FString UItrShowcaseAudit::SetupMaterialInstance(const FString& AssetPath, const
 	// states, relative restrictions) must have the same sizes. NotFromParent: the stack is this instance's own, never re-linked to the parent's.
 	for (FStaticMaterialLayersParameter& LP : SP.MaterialLayersParameters)
 	{
+		// GetStaticParameterValues includes inherited stacks. Only cooked local
+		// overrides replace the parent stack; leave pure inheritance untouched.
+		const bool bLocalOverride = MI->GetStaticParameters().MaterialLayersParameters.ContainsByPredicate(
+			[&LP](const FStaticMaterialLayersParameter& Local) { return Local.bOverride && Local.ParameterInfo == LP.ParameterInfo; });
+		if (!bLocalOverride) continue;
 		FMaterialLayersFunctions& L = LP.Value;
 		const int32 N = L.Layers.Num();
 		if (L.LayerStates.Num() != N) { P.Add(FString::Printf(TEXT("layer stack %s: %d layers, %d layer states"), *LP.ParameterInfo.Name.ToString(), N, L.LayerStates.Num())); L.LayerStates.SetNum(N); }
@@ -723,6 +728,16 @@ FString UItrShowcaseAudit::SetupMaterialInstance(const FString& AssetPath, const
 			L.LayerLinkStates[i] = EMaterialLayerLinkState::NotFromParent;
 		}
 		L.DeletedParentLayerGuids.Empty();
+		// NotFromParent alone does not prevent ResolveParent from inserting every
+		// unlinked parent layer. Cooked Value is the complete replacement stack.
+		FMaterialLayersFunctions ParentLayers;
+		FGuid ParentExpressionGuid;
+		if (Parent && Parent->GetMaterialLayersParameterValue(LP.ParameterInfo, ParentLayers, ParentExpressionGuid))
+		{
+			for (int32 i = 1; i < ParentLayers.LayerGuids.Num(); ++i)
+				L.DeletedParentLayerGuids.AddUnique(ParentLayers.LayerGuids[i]);
+		}
+
 #endif
 	}
 	FMaterialInstanceBasePropertyOverrides BO = MI->BasePropertyOverrides;
