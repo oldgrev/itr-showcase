@@ -1652,6 +1652,12 @@ local function NativeEnsureRow(SC)
     Row.InventoryAllowed = D.InventoryAllowed ~= false
     Row.SleepAllowed = Saves and (D.SleepAllowed == true) or false
     Row.AllowedGenerators = { Min = math.floor(tonumber(D.GenMin) or 0), Max = math.floor(tonumber(D.GenMax) or 0) }
+    -- The game keeps only AllowedGenerators of the level's rifts and removes the rest in OnLevelPrepare ("Excluded from this cruel world"); the donor zone allows 3,
+    -- so a map with 12 rifts would run 3. NativeGenerators = the number of rifts the map places (written by the generator, loader_sync.py).
+    local WantGen = tonumber(Opt(Map, "NativeGenerators", nil))
+    if WantGen and WantGen >= 0 then
+        Row.AllowedGenerators = { Min = math.floor(WantGen), Max = math.floor(WantGen) }
+    end
     Row.SaveOnExit = Saves and (D.SaveOnExit == true) or false
     Row.Autosave = Saves and (D.Autosave == true) or false
     Row.SaveOnLoad = Saves and (D.SaveOnLoad == true) or false

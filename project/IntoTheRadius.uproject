@@ -13,6 +13,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "SequencerScripting",
+			"Enabled": true
+		},
+		{
 			"Name": "VRExpansionPlugin",
 			"Enabled": true
 		},

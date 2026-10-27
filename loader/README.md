@@ -64,7 +64,7 @@ If the mod is removed, or the registration fails, a save made inside the map nam
 map before you uninstall.
 
 ## View settings
-While you are in the map `r.ViewDistanceScale 5` and `foliage.LODDistanceScale 5` are set, and the earlier values are put
+While you are in the map `r.ViewDistanceScale 6` and `foliage.LODDistanceScale 6` are set, and the earlier values are put
 back when the map goes, however you leave. This is done by the Blueprint actor `BP_ItrShowcase_MapSettings` in the map
 (BeginPlay remembers and sets, EndPlay restores); it is not a loader setting. The compass target (`BP_ItrShowcase_CompassSky`) and
 the player level and trigger flags of the progression unlock (`BP_ItrShowcase_Progression`) are Blueprint actors in the map too, so the

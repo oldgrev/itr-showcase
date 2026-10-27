@@ -107,8 +107,8 @@ Start the game, press Continue and wait in the Hub. Then:
 
 The game runs its normal level transition and you arrive at the start in the south, with the map's spawners, loot and
 anomalies running. The map is a registered level (`Level.Zone.ItrShowcase`) that copies the Buffer zone's settings, so game time
-passes, and stamina and hunger run, as in a stock zone. While you are in the map the map sets `r.ViewDistanceScale 5` and
-`foliage.LODDistanceScale 5` (a Blueprint in the map pak) and puts the earlier values back when you leave.
+passes, and stamina and hunger run, as in a stock zone. While you are in the map the map sets `r.ViewDistanceScale 6` and
+`foliage.LODDistanceScale 6` (a Blueprint in the map pak) and puts the earlier values back when you leave.
 
 The mission computer in the Hub offers the showcase missions once the loader is running (see "Showcase missions and uninstalling" in
 the README before you remove the mod). The map has a compass and a tablet map, and a printed map board at the entrance.
