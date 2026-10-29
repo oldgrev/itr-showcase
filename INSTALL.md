@@ -127,8 +127,6 @@ transition has not been through a full VR test since native loading came in.
 - **A save made inside the map loads into the Hub**, not into the map: Continue puts you in the Hub and you enter the map again
   from there. The loader registers the level before the main menu and turns the level's save flags on, but the game still resolves
   the saved level to the Hub. The cause is not found yet.
-- **Sun and sky light intensity are not applied yet.** The intended default for both is 1.0; the level in the pak still carries
-  3.0, so the map looks brighter than planned. The first attempt at the fix did not reach the saved level; a new one is pending.
 - Layout and dressing are still being tuned from walk tests: ground and foliage colour, enemy pressure, and where stashes and rifts
   sit. The gameplay setup, which is what this repo is for, is the part to look at.
 - Loot balance is still being tuned.

@@ -732,7 +732,7 @@
    "source_zone_budget": 20,
    "source_area_tags": 1,
    "scale": 7.21,
-   "loot_points": 144
+   "loot_points": 150
   },
   {
    "tag": "Loot.ItrShowcase.T5.Stash.Grey",
@@ -747,7 +747,7 @@
    "source_zone_budget": 36,
    "source_area_tags": 1,
    "scale": 7.21,
-   "loot_points": 260
+   "loot_points": 279
   },
   {
    "tag": "Loot.ItrShowcase.T5.Stash.Grey_Exist",

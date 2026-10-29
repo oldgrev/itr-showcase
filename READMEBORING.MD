@@ -10,14 +10,17 @@
   lake link them.
 - About 22,000 static-mesh actors, about 1,700 gameplay actors, and about 140,000 foliage and merged-mesh instances in HISM
   groups.
+- Buildings (268, 9,113 stock pieces) copy the furniture and fittings of the stock building each is modelled on, at the stock positions, and sit at
+  the stock depth in the ground with the terrain fitted to them. Dolina farm's big buildings copy the stock Pobeda buildings.
+  Lamps in interiors are placed as their meshes (their light is kept).
 - Placed at world (-34500, -364000, 0) cm. The map is registered as its own level, so the Hub's level radius does not apply;
   the loader gives it a radius of 2.5 km around that point.
 
 ### Zone look
 Sun, sky light (the game's cubemap `04-03_Sun_A_1024`), height fog and an unbound post-process volume, following the
 2.7.2 Buffer zone's setup; the sky sphere is the game's mesh and master material with material instances made for the map
-(`MI_ItrShowcase_Sky_*`), and the Radius ball sits in the north. Sun and sky light intensity are still 3.0 in the pak
-(intended 1.0, see Status). Landscape grass uses copies of the game's grass types with longer cull distances
+(`MI_ItrShowcase_Sky_*`), and the Radius ball sits in the north. The lighting was redone in the 2026-10-29 build:
+a day cycle, a softer sun (especially 17:00 to 20:00), sun shadows reaching about 700 m, and tree cull distances doubled. Landscape grass uses copies of the game's grass types with longer cull distances
 (`Content/Mods/ItrShowcase/Grass`).
 
 ### The edge of the map
@@ -30,6 +33,9 @@ The map ends in a square fog wall about 1.25 km from the centre, so there is no 
   (`FogMaterial_Inst`, `MI_FogMaterial_Masked`), up to 180 m high.
 - The backdrop landscape and the trees and foliage past the edge of the main landscape were removed, so nothing outside the wall
   is built or loaded.
+
+### Known issues (map content)
+- Lamps in building interiors are placed as their meshes and their light is kept, but the lamp shades use default materials for now.
 
 ### Gameplay systems
 All of these are the game's Blueprints (`/Game/ITR/BPs/...`) with per-instance property overrides. Open the level and

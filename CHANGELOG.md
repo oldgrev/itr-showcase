@@ -2,6 +2,24 @@
 
 Status of every release: early test with issues (see "Status" in the README).
 
+## 2026-10-29 build
+
+Changes since the 2026-10-24 build (this includes the 2026-10-27 archive).
+
+### Map
+- **Lighting redone.** The map has a day cycle, and the sun is much less harsh, especially from 17:00 to 20:00.
+- **Pine needle colour** changed.
+- **View distance 6 and foliage LOD 6** while you are in the map (they were 5). Tree cull distances are doubled, and sun shadows
+  reach about 700 m.
+- **Building interiors fixed.** Every building copies the furniture and fittings of the stock building it is modelled on, at the
+  stock positions. Before, 157 of the 270 buildings were empty, and sinks and other fittings sat at the wrong height.
+- **Buildings sit at the stock depth in the ground**, with the terrain fitted to them, so more buildings have door steps.
+- **Dolina farm's big buildings** now copy the stock Pobeda buildings.
+- **Lamps in interiors** are their meshes (their light is kept).
+- **Trees were regenerated**, and many moved slightly.
+- **Most stashes have new spots**, because stash placement follows the spots inside buildings. None were added or removed.
+- **The tablet map picture** is updated to the current layout.
+
 ## 2026-10-24 build
 
 Changes since the first archives (2026-10-18).
