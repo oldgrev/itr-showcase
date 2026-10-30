@@ -102,6 +102,25 @@ run as they do for a stock zone. What it does, at startup, before the main menu:
 Entering and leaving are triggers on top of that (`loader/ItrShowcaseLoader/Scripts/config.lua`): the tin of graphite grease, `F9`, the
 console command, the exit markers. Details: [`loader/README.md`](loader/README.md) and the loader README in `itr-common`.
 
+### The level tag pak
+A save writes every gameplay tag as its name (`CurrentLevelTag`, `PreviousLevelTag`, the position's level, the keys of the
+visited-levels list and of the per-level inventories). The reader turns each name back into a tag with `FGameplayTag`'s import
+path, and in Unreal 4.27 a name that is not in the tag tree becomes `None`. So with an unregistered level tag every one of those
+fields comes back empty, Continue finds no level to open and falls back to the Hub, and everything the save keyed by the tag
+(items left in the map, the sleep marker) is gone. Registering the tag fixes it, and the stock load path then returns you to the
+saved position.
+- `zzz_ITRMap_ItrShowcase_Tags_P.pak` holds one file, `ItrShowcaseLevelTags.ini`, mounted at `../../../IntoTheRadius/Config/Tags/`.
+  The game reads every tag ini in that folder at startup.
+- The ini is two lines: the section `[/Script/GameplayTags.GameplayTagsList]` and
+  `GameplayTagList=(Tag="Level.Zone.ItrShowcase",DevComment="...")`. It registers only the level tag.
+- The file name is unique on purpose. A pak file at the same path as a game file replaces it, so reusing the name of the stock level
+  tag list (`LevelGameplayTags.ini`) would unregister every stock level.
+- It is a separate pak because a Config file changes a pak's mount point, and the map pak stays mounted at
+  `../../../IntoTheRadius/Content/Mods/ItrShowcase/`.
+- `project/build-tags.ps1` builds it. It reads the tag from `NativeTag` in the loader's `config.lua`, and `project/build-map.ps1`
+  runs it after packing the map.
+- At startup the loader logs `tags: <tag> is REGISTERED` or `NOT registered`.
+
 ## Opening the project
 You can open `project/IntoTheRadius.uproject` to inspect the level, the Blueprints and the placements. What that needs:
 - **Engine.** Unreal 4.27. We only opened it with the **patched Oculus 4.27 editor** from `itr-common` (route B in its

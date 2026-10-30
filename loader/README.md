@@ -54,13 +54,16 @@ Entering only works from the Hub; nothing is ever loaded from the main menu.
 the game saves while you are in the map as it does in a stock zone. The loader has no fallback that moves a save. The one thing it
 writes into save data is the progression unlock of the missions (see "Missions").
 
-**Known issue:** a save made inside the map loads into the Hub, not into the map. The loader registers the level at startup,
-before the main menu offers the save, and `IsLevelTagValid` answers true, yet the loaded save comes back in the Hub; the cause is
-not found yet. Two untested ideas: the save stores the level as a gameplay tag that is not in the tag manager (only the name is
-written), or the manual save path ignores the row's save flags. The code that handles a save the game loads inside the map (arm the
-exits, point the loot at the map's tables, apply the view settings) is in `main.lua` for when that works.
+A save keeps the level only if the level's gameplay tag is registered with the game. The save writes every tag as its name and
+turns the name back into a tag when it is read; a name the game does not know comes back empty, and Continue then opens the Hub.
+The level tag (`Level.Zone.ItrShowcase`) is registered by a one-line tag ini in a small pak of its own,
+`zzz_ITRMap_ItrShowcase_Tags_P.pak` (mount point `../../../IntoTheRadius/Config/Tags/`, in `Content/Paks/~mods` next to the map
+pak). The loader logs `tags: Level.Zone.ItrShowcase is REGISTERED` or `NOT registered` once at startup. When the game loads a
+save that is inside the map, the loader arms the exits, points the loot at the map's tables and applies the view settings.
 
-If the mod is removed, or the registration fails, a save made inside the map names a level the game does not know, so leave the
+**Known issue:** the loader and the tag pak go together. With the loader (or UE4SS) removed and the tag pak left in place, the tag
+is registered but the level does not exist, so a save made in the map does not continue. Put the loader back, or remove both paks.
+If the mod is removed completely, a save made inside the map names a level the game does not know and opens the Hub, so leave the
 map before you uninstall.
 
 ## View settings

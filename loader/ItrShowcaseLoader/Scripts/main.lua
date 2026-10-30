@@ -1333,7 +1333,8 @@ end
 --
 -- Saves: NativeSaves = true (the showcase config) copies the donor zone's autosave, save-on-load, save-on-exit and sleeping flags,
 -- so the level saves like a stock zone and a save made in it loads back into it (the registration at startup runs before the
--- main menu offers the save). Apart from the progression unlock (MissionsProgression), the loader does not touch saves.
+-- main menu offers the save). The save keeps the level only while zzz_ITRMap_ItrShowcase_Tags_P.pak registers the level tag as a
+-- gameplay tag: the save reader turns an unregistered tag into None, and Continue then opens the Hub. Apart from the progression unlock (MissionsProgression), the loader does not touch saves.
 -- NativeSaves = false turns those four flags off (no save file is written while the game is in the level).
 local NativeState = { Ready = false, Failed = nil, RowDone = false, CenterDone = false, GatesDone = false, LootDone = false, WorldAddr = nil,
                       Entry = nil, Map = nil, Tag = nil, Sub = nil, RowFill = nil, Checks = 0, Logged = {} }
@@ -1974,6 +1975,21 @@ local function NativeRegisterTick()
     NativeState.Ready = true
     Log("native: READY: %s is a game level (%s). Entering uses the game's TransferToLevel; the streaming loader is not used.",
         Map.Name, NativeState.Tag)
+    -- probe P1 (once): is the map's level tag in the gameplay tag tree? A save keeps the tag only when it is.
+    local okT, reg = pcall(function()
+        local L = StaticFindObject("/Script/GameplayTags.Default__BlueprintGameplayTagLibrary")
+        return L:MatchesTag(TagStruct(NativeState.Tag), TagStruct("Level.Zone"), false)
+    end)
+    Log("tags: %s is %s in the gameplay tag tree (saves made in the map %s)", NativeState.Tag,
+        (okT and reg == true) and "REGISTERED" or "NOT registered",
+        (okT and reg == true) and "keep their level" or "load into the Hub: is zzz_ITRMap_ItrShowcase_Tags_P.pak installed?")
+end
+
+-- Point the loot entries at the map's own tables (the map's level is in memory). Returns the entry count; sets NativeLootOwn.
+local function NativeRepointOwn(Map)
+    local OkR, NR = pcall(RepointOwnTables, Map, false)
+    NativeLootOwn = OkR and (NR or 0) > 0
+    return NR
 end
 
 -- Arrival transform for the save slot the game reads first (PlayerGameData position for the level)
@@ -2045,8 +2061,7 @@ local function NativeEnter(Map, Why)
             local S = Valid(W) and FindNativeEntry(W, NativeState.Sub) or nil
             if S and CallBool(S, "IsLevelLoaded") then
                 Trip.LootDone = true
-                local OkR, NR = pcall(RepointOwnTables, Map, false)
-                NativeLootOwn = OkR and (NR or 0) > 0
+                local NR = NativeRepointOwn(Map)
                 Log("native: level loaded after %.1f s; own loot tables %s", Ms / 1000,
                     NativeLootOwn and ("in use (" .. tostring(NR) .. " entries)") or "not available, donor tables kept")
             end
@@ -2221,6 +2236,58 @@ local function NativeReentryWatch(Map)
 end
 
 -- Background: registration, then a light watch (left the map another way: death, fog, gate)
+-- The game loads the map's level itself (Continue from a save made in the map): repoint the loot tables as soon as the level is
+-- in memory, before it prepares and its loot nodes roll. One watcher at a time, only while the entry is loading.
+local NativeLoadWatch = false
+local function NativeWatchLoad(Map)
+    NativeLoadWatch = true
+    local T0 = Now()
+    Every(100, function()
+        local Ms = Now() - T0
+        if Current or NativeTrip or NativeLootOwn or Ms > 180000 then NativeLoadWatch = false; return true end
+        local W = UEHelpers.GetWorld()
+        local S = Valid(W) and FindNativeEntry(W, NativeState.Sub) or nil
+        if S and CallBool(S, "IsLevelLoaded") then
+            local NR = NativeRepointOwn(Map)
+            Log("native: level loaded by a save load after %.1f s; own loot tables %s", Ms / 1000,
+                NativeLootOwn and ("in use (" .. tostring(NR) .. " entries)") or "not available, donor tables kept")
+            NativeLoadWatch = false
+            return true
+        end
+        return false
+    end)
+end
+
+-- One check about 3 s after the game put the player into the map: a saved position far outside the square (for example 0, 0, 0 after
+-- a death), or a player falling through, goes to the arrival marker.
+local NativePosGuard = false
+local function NativeGuardPosition(Map, S)
+    if NativePosGuard then return end
+    NativePosGuard = true
+    local T0 = Now()
+    local Z0 = nil
+    Every(500, function()
+        local Ms = Now() - T0
+        if Ms < 3000 then return false end
+        local L = PawnLoc()
+        if not L then NativePosGuard = false; return true end
+        if not Z0 then Z0 = { Z = L.Z, T = Ms }; return false end
+        if Ms - Z0.T < 1000 then return false end
+        local C = Opt(Map, "NativeCenter", { X = 0, Y = 0, Z = 0 })
+        local Far = Dist2D(L, { X = C.X or 0, Y = C.Y or 0 }) > Opt(Map, "NativeRadius", 250000)
+        local Falling = OnMapGround(S) ~= true and (Z0.Z - L.Z) > 200
+        NativePosGuard = false
+        if Far or Falling then
+            local Stream = Valid(S) and S or nil
+            local M = Stream and ScanMarkers(Map, Stream) or nil
+            local Want = M and ChooseArrival(Map, M) or nil
+            Log("native: saved position %s is %s; moving the player to the arrival marker", FmtV(L), Far and "outside the map" or "falling")
+            if Want then TeleportPlayer(Want.Loc, Want.Rot, "arrival marker (bad saved position)") end
+        end
+        return true
+    end)
+end
+
 local function NativeStartup()
     local Map = NativeMap()
     if not Map then return end
@@ -2255,6 +2322,12 @@ local function NativeStartup()
                 Current = nil
             end
         end
+        -- Continue into the map: repoint the loot tables as soon as the level is in memory (before the adoption below, which needs it visible)
+        if NativeState.Ready and not Current and not NativeTrip and not NativeLootOwn and not NativeLoadWatch then
+            local WL = UEHelpers.GetWorld()
+            local SL = Valid(WL) and FindNativeEntry(WL, NativeState.Sub) or nil
+            if SL and PropBool(SL, "bShouldBeLoaded") and not CallBool(SL, "IsLevelLoaded") then NativeWatchLoad(Map) end
+        end
         -- the game loaded the map's level itself (a save made in the map): exits, loot tables and map settings as after an entry
         -- (cheap test first: in the Hub the map's streaming entry is not visible, and LevelTagNow() would scan every PRGameData object every 2 s)
         local SaveW = (NativeState.Ready and not Current and not NativeTrip and not NativeReturn) and UEHelpers.GetWorld() or nil
@@ -2265,14 +2338,20 @@ local function NativeStartup()
             if S and CallBool(S, "IsLevelVisible") then
                 local M = ScanMarkers(Map, S)
                 local L = PawnLoc()
-                Log("native: the game loaded %s itself (a save made in the map); player at %s, %d TargetPoint(s); exits armed",
-                    NativeState.Tag, L and FmtV(L) or "?", #M.All)
+                local PrevTag, PosTag = "?", "?"
+                local OkP = pcall(function()   -- probe P2: what the load kept
+                    local GD = GetGameData()
+                    PrevTag = tostring(GD.PreviousLevelTag.TagName:ToString())
+                    PosTag = tostring(GD.PlayerData.PositionLevel.TagName:ToString())
+                end)
+                Log("native: the game loaded %s itself (a save made in the map); player at %s, %d TargetPoint(s); exits armed; PreviousLevelTag=%s PositionLevel=%s%s",
+                    NativeState.Tag, L and FmtV(L) or "?", #M.All, PrevTag, PosTag, OkP and "" or " (unreadable)")
+                NativeGuardPosition(Map, S)
                 Current = { Map = Map, Stream = S, Return = nil, Phase = "active", Exits = {}, Native = true }
                 ArmExits(M)
                 MissionsProgression("save loaded in the map")
                 if not NativeLootOwn then
-                    local OkR, NR = pcall(RepointOwnTables, Map, false)
-                    NativeLootOwn = OkR and (NR or 0) > 0
+                    local NR = NativeRepointOwn(Map)
                     Log("native: own loot tables %s", NativeLootOwn and ("in use (" .. tostring(NR) .. " entries)") or "not available, donor tables kept")
                 end
             end

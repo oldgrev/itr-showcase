@@ -29,6 +29,7 @@ IntoTheRadius\Content\Paks\LuaMods\shared\UEHelpers\UEHelpers.lua    helper the 
 IntoTheRadius\Content\Paks\LuaMods\ItrShowcaseLoader\enabled.txt     turns the loader on
 IntoTheRadius\Content\Paks\LuaMods\ItrShowcaseLoader\Scripts\main.lua, config.lua, missions.lua, ItrShowcase.loot.json, ItrShowcase.missions.json
 IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak        the map (about 480 MB)
+IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_Tags_P.pak   the level tag pak (under 1 KB): registers the map's level tag so saves keep it
 ```
 The normal archive also has `ITR-Showcase-INSTALL.md` (this file) at its root; you can delete it after unzipping.
 
@@ -42,7 +43,7 @@ Changelog and README, and the debug symbols.
 ## Manual install (normal archive)
 1. Close the game.
 2. Unzip `ItrShowcase-<date>.zip` into the game folder. Let it merge with the existing `IntoTheRadius` folder.
-3. Check that `IntoTheRadius\Content\Paks\UE4SS.dll` and `IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak` exist.
+3. Check that `IntoTheRadius\Content\Paks\UE4SS.dll`, `IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak` and `IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_Tags_P.pak` exist.
 4. Start the game, see "Play" below.
 
 ## Vortex install (FOMOD archive)
@@ -124,9 +125,11 @@ transition has not been through a full VR test since native loading came in.
 `UE4SS.log` (next to `UE4SS.dll`, in `Content\Paks`) shows what the loader does; look for `[ItrShowcaseLoader]` lines.
 
 ## Known issues
-- **A save made inside the map loads into the Hub**, not into the map: Continue puts you in the Hub and you enter the map again
-  from there. The loader registers the level before the main menu and turns the level's save flags on, but the game still resolves
-  the saved level to the Hub. The cause is not found yet.
+- **A save made inside the map loads back into the map** only while `zzz_ITRMap_ItrShowcase_Tags_P.pak` is installed next to the
+  map pak. It registers the map's level tag with the game; without it the game forgets the level when it reads the save, and
+  Continue opens the Hub (items you left in the map are lost). Keep the loader installed with the two paks: with the loader gone
+  the tag stays registered but the level does not exist, so a save made in the map will not continue. `UE4SS.log` has a line
+  `tags: Level.Zone.ItrShowcase is REGISTERED` when the tag pak works.
 - Layout and dressing are still being tuned from walk tests: ground and foliage colour, enemy pressure, and where stashes and rifts
   sit. The gameplay setup, which is what this repo is for, is the part to look at.
 - Loot balance is still being tuned.
@@ -141,10 +144,12 @@ transition has not been through a full VR test since native loading came in.
   and later `native: READY` means it is waiting for you in the Hub.
 - **The loader is ready but the map does not load:** the pak has to be in `Content\Paks\~mods` and named
   `zzz_ITRMap_ItrShowcase_P.pak`.
+- **Continue opens the Hub although you saved in the map:** a `UE4SS.log` line `tags: ... NOT registered` means
+  `zzz_ITRMap_ItrShowcase_Tags_P.pak` is missing or not in `Content\Paks\~mods`.
 
 ## Uninstall
 Leave the map first and let the Hub autosave run, because a save made inside the map names a level only the loader registers.
-If the save holds a showcase mission, read "Showcase missions and uninstalling" in the README first. Then delete `Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak` and `Content\Paks\LuaMods\ItrShowcaseLoader`. To remove the
+If the save holds a showcase mission, read "Showcase missions and uninstalling" in the README first. Then delete `Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak`, `Content\Paks\~mods\zzz_ITRMap_ItrShowcase_Tags_P.pak` and `Content\Paks\LuaMods\ItrShowcaseLoader`. To remove the
 bundled UE4SS as well: `Binaries\Win64\dwmapi.dll` and `override.txt`, and from `Content\Paks` the files `UE4SS.dll`,
 `UE4SS-settings.ini`, `UE4SS-LICENSE.txt`, `UE4SS.log` and `LuaMods\shared`. In Vortex, disable or remove the mod and purge.
 

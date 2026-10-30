@@ -26,11 +26,11 @@ return {
             NativeTag = "Level.Zone.ItrShowcase",
             DisplayName = "ITR Showcase",
             NativeDonorTag = "Level.Zone.Buffer",  -- stock zone whose time, inventory and map-scale settings are copied
-            NativeSaves = true,                    -- the level saves like a stock zone; a save made inside the map loads back into it
+            NativeSaves = true,                    -- the level saves like a stock zone; a save made inside the map loads back into it (needs zzz_ITRMap_ItrShowcase_Tags_P.pak, which registers the level tag)
             -- The map's console variables (r.ViewDistanceScale 6 and foliage.LODDistanceScale 6, set while you are in the map and put back when you
             -- leave it), the compass target and the progression unlock's player level and trigger flags are Blueprint actors in the map pak
             -- (BP_ItrShowcase_MapSettings, _CompassSky, _Progression), not settings of this file.
-            NativeReloadOnTide = false,            -- the map has no tide actor yet
+            NativeReloadOnTide = true,             -- stock tide: reload after the tide (shelters, respawn), as every stock zone
             NativeGenerators = 33,                 -- rifts the game keeps in the level (AllowedGenerators; the donor zone allows 3). Written by gen/tools/loader_sync.py: do not edit
             NativeRadius = 250000,
             NativeCenter = { X = -34500, Y = -364000, Z = 0 },              -- centre of the 2.5 km playable square

@@ -493,7 +493,9 @@ static UEdGraphNode* MakeNode(FCtx& Ctx, const TSharedPtr<FJsonObject>& J, const
 		FObjectProperty* CP = FindFProperty<FObjectProperty>(BP->SkeletonGeneratedClass, FName(*Comp));
 		FMulticastDelegateProperty* DP = CP ? FindFProperty<FMulticastDelegateProperty>(CP->PropertyClass, FName(*Del)) : nullptr;
 		if (!CP || !DP) { Ctx.Err(FString::Printf(TEXT("%s: component '%s' / delegate '%s' not found"), *Id, *Comp, *Del)); return nullptr; }
-		return NewNode<UK2Node_ComponentBoundEvent>(Ctx, [&](UK2Node_ComponentBoundEvent* N) { N->InitializeComponentBoundEventParams(CP, DP); });
+		return NewNode<UK2Node_ComponentBoundEvent>(Ctx, [&](UK2Node_ComponentBoundEvent* N) { N->InitializeComponentBoundEventParams(CP, DP);
+			// "function_name": the handler name to use instead of the compiler's BndEvt__<Blueprint>_<Comp>_<Node>_<Sig> (a stock class carries BndEvt__<Comp>_<Node>_<Sig>)
+			FString FnName; if (J->TryGetStringField(TEXT("function_name"), FnName) && !FnName.IsEmpty()) N->CustomFunctionName = FName(*FnName); });
 	}
 	if (Op == TEXT("call"))
 	{

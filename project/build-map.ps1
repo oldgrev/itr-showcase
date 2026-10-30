@@ -45,8 +45,16 @@ $files | ForEach-Object {
 if ($LASTEXITCODE -ne 0) { throw "UnrealPak failed ($LASTEXITCODE)" }
 Write-Host "Packed $($files.Count) files -> $Pak"
 
+# 4. The level tag pak: registers the map's level tag (NativeTag in the loader config) so a save made in the map keeps its level.
+#    A separate pak, because a Config file would change this pak's mount point. Installed into ~mods (the map pak is not moved).
+& (Join-Path $PSScriptRoot "build-tags.ps1") -Engine $Engine -Map $Map
+
 if ($Install) {
     if (Get-Process "IntoTheRadius-Win64-Shipping" -ErrorAction SilentlyContinue) { throw "Close the game first (paks are mounted at startup)." }
     Copy-Item $Pak (Join-Path $GameDir "IntoTheRadius\Content\Paks") -Force
     Write-Host "Installed -> $GameDir\IntoTheRadius\Content\Paks\$PakName"
+    $Dest = Join-Path $GameDir "IntoTheRadius\Content\Paks\~mods"
+    New-Item -ItemType Directory -Force $Dest | Out-Null
+    Copy-Item (Join-Path $OutDir "zzz_ITRMap_$($Map)_Tags_P.pak") $Dest -Force
+    Write-Host "Installed -> $Dest\zzz_ITRMap_$($Map)_Tags_P.pak"
 }

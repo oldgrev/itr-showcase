@@ -2,6 +2,23 @@
 
 Status of every release: early test with issues (see "Status" in the README).
 
+## Unreleased
+
+Not in an archive yet.
+
+### Saving
+- **Saves made in the map now load back into it.** Continue puts you where you saved, and items you left on the ground are still
+  there. Before, the game forgot the map's level when it read the save and opened the Hub instead. A new small pak,
+  `zzz_ITRMap_ItrShowcase_Tags_P.pak` (in `~mods` next to the map pak), registers the map's level tag. It is in both archives and
+  has to be installed and removed together with the map pak.
+- The loader logs once at startup whether the tag is registered, points the map's loot tables at the map as soon as a save load
+  brings the map in, and moves you to the arrival marker if a loaded save puts you outside the map.
+
+### Map
+- **Stock tide.** The map has a stock tide actor and the game's tide sequence, linked to the map's environment, and the level
+  reloads after a tide as in the stock zones.
+- **A shelter with a bed** next to the arrival pad, for testing sleeping and shelter logic.
+
 ## 2026-10-29 build
 
 Changes since the 2026-10-24 build (this includes the 2026-10-27 archive).
