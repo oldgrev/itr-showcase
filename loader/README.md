@@ -4,18 +4,17 @@ The game can't enter custom maps by itself. This is the UE4SS Lua mod that regis
 and enters it through the game's level transfer, so you get the normal transition, loot, spawners and arrival. It is based on
 [`itr-common/loader-ue4ss`](../../itr-common/loader-ue4ss/), configured for this map, and it is a **separate mod** from
 itr-common's `ITRMapLoader` (which loads the example map): different folder (`ItrShowcaseLoader`), log tag, console command,
-key and Hub item. The two are written to run side by side, but the showcase is tested with `ITRMapLoader` switched off and does not
-need it: switch it off while you play the showcase (see "ITRMapLoader" in [`INSTALL.md`](../INSTALL.md)).
+key and Hub item. The two are written to run side by side, but the showcase doesn't need `ITRMapLoader` and was tested with it off,
+so switch it off while you play the showcase (see "ITRMapLoader" in [`INSTALL.md`](../INSTALL.md)).
 
 ## Origin
 - **Base: `itr-common/loader-ue4ss/ITRMapLoader`.** `Scripts/main.lua` and `enabled.txt` started as copies of it. Generic fixes
-  belong there. At the moment `main.lua` here also has additions that itr-common does not have yet: adopting a save the
-  game loads inside the map, the removal of the startup guard that moved such a save to the Hub, the level gates and the tablet
-  picture, the missions glue and the cheap game-mode and game-data lookups. A plain re-copy from itr-common would drop them, so until
-  they are merged upstream this file is maintained here.
+  belong there. `main.lua` here also has additions that itr-common doesn't have yet: adopting a save the game loads inside the map,
+  the removal of the startup guard that moved such a save to the Hub, the level gates and the tablet picture, the missions glue and
+  the cheap game-mode and game-data lookups. Copying `main.lua` from itr-common again would drop them.
 - **Showcase-specific:**
   - `Scripts/config.lua`: the map entry (`ItrShowcase`, `/Game/Mods/ItrShowcase/L_ItrShowcase`, tag
-    `Level.Zone.ItrShowcase`, map centre, start position, the tablet map settings and the return-pad markers), the triggers, the log
+    `Level.Zone.ItrShowcase`, map centre, start position, the tablet map settings, the return-pad marker and the bunker return points), the triggers, the log
     tag, the console command and the missions switch.
   - `Scripts/ItrShowcase.loot.json`: the map's loot tags and budgets (68 tags). `main.lua` finds it as
     `<Map Name>.loot.json` next to itself. Without it the map still loads, but the loader skips the loot registration
@@ -38,37 +37,37 @@ The empty `enabled.txt` turns the loader on; no `mods.txt` entry is needed.
 - **The console command** `itrshowcase enter` (and `itrshowcase leave`); `ConsoleCommand` changes the name. Another mod can
   send it with `ExecuteConsoleCommand`.
 - `TriggerFile = "<full path>"` enters the map when that file appears (it is deleted when seen). A test hook.
-Entering only works from the Hub; nothing is ever loaded from the main menu.
+Entering only works from the Hub.
 
 ## Leaving and coming back
-- The map has exits at its return points R0 to R6: `TargetPoint`s tagged `itr:exit` and `itr:exit_id:R<n>`, on the return pads.
-  Stand within `ExitRadius` (150 cm) of one and the loader asks the game to go back to the Hub. `F9` and `itrshowcase leave`
-  leave too.
+- The map has one exit point, R0 (the Kordon entrance): a `TargetPoint` tagged `itr:exit` and `itr:exit_id:R0`, on the return pad.
+  Stand within `ExitRadius` (150 cm) of it and the loader asks the game to go back to the Hub. `F9` and `itrshowcase leave`
+  work too. The loader reads any number of exit points.
 - **Re-entry.** Leaving through an exit with an id is remembered in `Scripts/reentry.txt`. The next entry puts you at
   the `itr:arrive:R<n>` marker in front of that exit instead of the start. Delete the file to forget, or set `ReEntry = false`.
-- The map's teleport pads (`itr:tp:*` points, and the cyan to-entrance pads) only move you around inside the map. They do not
-  leave it.
+- **Leaving through a bunker door and coming back.** The tunnel door in the shared bunker sets the save marker `ItrShowcase:return:S` and transfers to the Hub. On the next
+  entry, the loader finds that marker in `NativeBunkerReturns` (`config.lua`, one row, `S`), arrives at the row's position by the door and removes the marker. Moving between
+  the four sites and the bunker happens inside the level (`BP_ItrShowcase_Airlock`); the loader isn't involved.
 
 ## Saving
 `NativeSaves = true`: the level row copies the donor zone's (Buffer) autosave, save-on-load, save-on-exit and sleeping flags, so
-the game saves while you are in the map as it does in a stock zone. The loader has no fallback that moves a save. The one thing it
+the game saves while you are in the map as it does in a stock zone. The loader has no fallback that moves a save. The only thing it
 writes into save data is the progression unlock of the missions (see "Missions").
 
 A save keeps the level only if the level's gameplay tag is registered with the game. The save writes every tag as its name and
 turns the name back into a tag when it is read; a name the game does not know comes back empty, and Continue then opens the Hub.
-The level tag (`Level.Zone.ItrShowcase`) is registered by a one-line tag ini in a small pak of its own,
+The level tag (`Level.Zone.ItrShowcase`) is registered by a one-line tag ini in a separate small pak,
 `zzz_ITRMap_ItrShowcase_Tags_P.pak` (mount point `../../../IntoTheRadius/Config/Tags/`, in `Content/Paks/~mods` next to the map
 pak). The loader logs `tags: Level.Zone.ItrShowcase is REGISTERED` or `NOT registered` once at startup. When the game loads a
 save that is inside the map, the loader arms the exits, points the loot at the map's tables and applies the view settings.
 
-**Known issue:** the loader and the tag pak go together. With the loader (or UE4SS) removed and the tag pak left in place, the tag
-is registered but the level does not exist, so a save made in the map does not continue. Put the loader back, or remove both paks.
-If the mod is removed completely, a save made inside the map names a level the game does not know and opens the Hub, so leave the
-map before you uninstall.
+**Known issue:** with the loader (or UE4SS) removed and the tag pak left in place, the tag is registered but the level doesn't exist,
+so a save made in the map won't continue. Put the loader back, or remove both paks. With the mod removed completely, a save made in
+the map names a level the game doesn't know and opens the Hub, so leave the map before you uninstall.
 
 ## View settings
 While you are in the map `r.ViewDistanceScale 6` and `foliage.LODDistanceScale 6` are set, and the earlier values are put
-back when the map goes, however you leave. This is done by the Blueprint actor `BP_ItrShowcase_MapSettings` in the map
+back when the map goes. This is done by the Blueprint actor `BP_ItrShowcase_MapSettings` in the map
 (BeginPlay remembers and sets, EndPlay restores); it is not a loader setting. The compass target (`BP_ItrShowcase_CompassSky`) and
 the player level and trigger flags of the progression unlock (`BP_ItrShowcase_Progression`) are Blueprint actors in the map too, so the
 loader does no per-frame or per-second work for them.
@@ -83,8 +82,8 @@ map is loaded, and points them back at the donor tables when it goes. See "Loot"
 The hip tablet shows blank paper outside the map. `NativeMapPicture = true` makes the loader point the map's level row at the
 material instance on the map board (the `StaticMeshActor` tagged `NativeMapBoardTag`, `itr:mapboard`) while the map's level is
 loaded, and back at the blank paper before it goes. `NativeMapScale` and `NativeMapRotation` set the picture's scale and turn.
-`NativeGates` lists one stock `LevelGates` row per return pad (position in cm from `NativeCenter`), so the tablet draws the pads as
-transition markers.
+`NativeGates` lists one stock `LevelGates` row per return pad (position in cm from `NativeCenter`; this map has one, R0), so the
+tablet draws the pad as a transition marker.
 
 ## Missions
 `Missions = { Enabled = true }` in `config.lua` switches `Scripts/missions.lua` on. It reads `ItrShowcase.missions.json` and, once the

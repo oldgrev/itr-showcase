@@ -10,6 +10,9 @@
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/SCS_Node.h"
+#include "Engine/TimelineTemplate.h"
+#include "Curves/CurveFloat.h"
+#include "Components/TimelineComponent.h"
 #include "Engine/InheritableComponentHandler.h"
 #include "K2Node_FunctionEntry.h"
 #include "Engine/SimpleConstructionScript.h"
@@ -965,6 +968,74 @@ FString UItrShowcaseBPGen::GenerateBlueprintFromSpec(const FString& JsonPath)
 					Entry->CreateUserDefinedPin(FName(*PO->GetStringField(TEXT("name"))), PT, EGPD_Output);
 				}
 			}
+		}
+	}
+
+	// 3e. Timelines ("timelines": [{"name", "guid", "length", "lengthMode", "autoPlay", "loop", "replicated", "ignoreTimeDilation",
+	// "floatTracks": [{"track", "curve", "keys": [{"time", "value", "interp", "tangentMode", "arrive", "leave"}]}]}]): the game's exact guid
+	// (inside the track property names) and curve object names (outer = the generated class), so a cooked instance's TimelineComponents resolve
+	// against the real class. Float tracks only; no K2Node_Timeline is needed (the component comes from BPGC->Timelines).
+	const TArray<TSharedPtr<FJsonValue>>* TlArr = nullptr;
+	if (Spec->TryGetArrayField(TEXT("timelines"), TlArr) && BP->GeneratedClass)
+	{
+		for (const TSharedPtr<FJsonValue>& V : *TlArr)
+		{
+			const TSharedPtr<FJsonObject> O = V->AsObject();
+			const FString TlName = O->GetStringField(TEXT("name"));
+			FGuid TlGuid;
+			if (!FGuid::Parse(O->GetStringField(TEXT("guid")), TlGuid)) { Ctx.Err(FString::Printf(TEXT("timeline %s: bad guid"), *TlName)); continue; }
+			UTimelineTemplate* Tl = FBlueprintEditorUtils::AddNewTimeline(BP, FName(*TlName));
+			if (!Tl) { Ctx.Err(FString::Printf(TEXT("timeline %s: AddNewTimeline failed"), *TlName)); continue; }
+			Tl->TimelineGuid = TlGuid;                       // before the tracks: their property names embed it
+			double Num = 0; bool B = false; FString S;
+			if (O->TryGetNumberField(TEXT("length"), Num)) Tl->TimelineLength = (float)Num;
+			if (O->TryGetStringField(TEXT("lengthMode"), S))
+			{
+				const int64 EV = StaticEnum<ETimelineLengthMode>()->GetValueByNameString(S);
+				if (EV == INDEX_NONE) Ctx.Err(FString::Printf(TEXT("timeline %s: bad lengthMode %s"), *TlName, *S)); else Tl->LengthMode = (ETimelineLengthMode)EV;
+			}
+			if (O->TryGetBoolField(TEXT("autoPlay"), B)) Tl->bAutoPlay = B;
+			if (O->TryGetBoolField(TEXT("loop"), B)) Tl->bLoop = B;
+			if (O->TryGetBoolField(TEXT("replicated"), B)) Tl->bReplicated = B;
+			if (O->TryGetBoolField(TEXT("ignoreTimeDilation"), B)) Tl->bIgnoreTimeDilation = B;
+			for (const FString& Unsup : { FString(TEXT("vectorTracks")), FString(TEXT("eventTracks")), FString(TEXT("colorTracks")) })
+			{
+				const TArray<TSharedPtr<FJsonValue>>* U = nullptr;
+				if (O->TryGetArrayField(Unsup, U) && U->Num()) Ctx.Err(FString::Printf(TEXT("timeline %s: %s not supported"), *TlName, *Unsup));
+			}
+			const TArray<TSharedPtr<FJsonValue>>* Trs = nullptr;
+			O->TryGetArrayField(TEXT("floatTracks"), Trs);
+			TArray<FString> TrackReport;
+			for (const TSharedPtr<FJsonValue>& TV : (Trs ? *Trs : TArray<TSharedPtr<FJsonValue>>()))
+			{
+				const TSharedPtr<FJsonObject> TO = TV->AsObject();
+				const FString TrackName = TO->GetStringField(TEXT("track"));
+				const FName CurveName(*TO->GetStringField(TEXT("curve")));
+				if (StaticFindObjectFast(UObject::StaticClass(), BP->GeneratedClass, CurveName)) { Ctx.Err(FString::Printf(TEXT("timeline %s: curve %s already exists"), *TlName, *CurveName.ToString())); continue; }
+				UCurveFloat* Cv = NewObject<UCurveFloat>(BP->GeneratedClass, CurveName, RF_Public | RF_Transactional);
+				const TArray<TSharedPtr<FJsonValue>>* Ks = nullptr;
+				TO->TryGetArrayField(TEXT("keys"), Ks);
+				for (const TSharedPtr<FJsonValue>& KV : (Ks ? *Ks : TArray<TSharedPtr<FJsonValue>>()))
+				{
+					const TSharedPtr<FJsonObject> KO = KV->AsObject();
+					const FKeyHandle KH = Cv->FloatCurve.AddKey((float)KO->GetNumberField(TEXT("time")), (float)KO->GetNumberField(TEXT("value")));
+					FRichCurveKey& RK = Cv->FloatCurve.GetKey(KH);
+					FString ES; double KN = 0;
+					if (KO->TryGetStringField(TEXT("interp"), ES)) { const int64 E1 = StaticEnum<ERichCurveInterpMode>()->GetValueByNameString(ES); if (E1 != INDEX_NONE) RK.InterpMode = (ERichCurveInterpMode)E1; else Ctx.Err(TEXT("timeline key: bad interp ") + ES); }
+					if (KO->TryGetStringField(TEXT("tangentMode"), ES)) { const int64 E2 = StaticEnum<ERichCurveTangentMode>()->GetValueByNameString(ES); if (E2 != INDEX_NONE) RK.TangentMode = (ERichCurveTangentMode)E2; else Ctx.Err(TEXT("timeline key: bad tangentMode ") + ES); }
+					if (KO->TryGetNumberField(TEXT("arrive"), KN)) RK.ArriveTangent = (float)KN;
+					if (KO->TryGetNumberField(TEXT("leave"), KN)) RK.LeaveTangent = (float)KN;
+				}
+				FTTFloatTrack Tr;
+				Tr.SetTrackName(FName(*TrackName), Tl);
+				Tr.CurveFloat = Cv;
+				Tr.bIsExternalCurve = false;
+				const int32 Idx = Tl->FloatTracks.Add(Tr);
+				Tl->AddDisplayTrack(FTTTrackId(FTTTrackBase::TT_FloatInterp, Idx));
+				TrackReport.Add(FString::Printf(TEXT("%s (curve %s, %d keys)"), *Tl->FloatTracks[Idx].GetPropertyName().ToString(), *CurveName.ToString(), Cv->FloatCurve.GetNumKeys()));
+			}
+			static_cast<UObject*>(Tl)->PostEditImport();     // UpdateCachedNames with the game guid
+			Lines.Add(FString::Printf(TEXT("  timeline %s: direction %s; tracks %s"), *TlName, *Tl->GetDirectionPropertyName().ToString(), *FString::Join(TrackReport, TEXT("; "))));
 		}
 	}
 

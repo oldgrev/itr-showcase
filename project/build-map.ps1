@@ -51,10 +51,30 @@ Write-Host "Packed $($files.Count) files -> $Pak"
 
 if ($Install) {
     if (Get-Process "IntoTheRadius-Win64-Shipping" -ErrorAction SilentlyContinue) { throw "Close the game first (paks are mounted at startup)." }
-    Copy-Item $Pak (Join-Path $GameDir "IntoTheRadius\Content\Paks") -Force
-    Write-Host "Installed -> $GameDir\IntoTheRadius\Content\Paks\$PakName"
-    $Dest = Join-Path $GameDir "IntoTheRadius\Content\Paks\~mods"
+    # T-165: install where the game loads it. When Paks\~mods\<pak> is a symlink (a mod manager's staging copy, e.g. Vortex), overwrite the link's TARGET and remove any loose
+    # copy in Paks (two paks of one name = the loose one shadows or duplicates the staged one). Otherwise write the loose pak as before. No backup (the pak is ~500 MB).
+    $Paks = Join-Path $GameDir "IntoTheRadius\Content\Paks"
+    $Dest = Join-Path $Paks "~mods"
+    function Get-InstallTarget([string]$Name) {
+        $link = Get-Item -LiteralPath (Join-Path $Dest $Name) -Force -ErrorAction SilentlyContinue
+        if ($link -and $link.LinkType -eq "SymbolicLink" -and $link.Target) {
+            $t = [string](@($link.Target)[0])
+            if (-not [IO.Path]::IsPathRooted($t)) { $t = [IO.Path]::GetFullPath((Join-Path $Dest $t)) }
+            if (Test-Path -LiteralPath (Split-Path $t -Parent)) { return @{ Path = $t; Link = $link.FullName } }
+            Write-Warning "$($link.FullName) is a symlink to $t but its folder is missing: writing a loose pak instead"
+        }
+        return @{ Path = (Join-Path $Paks $Name); Link = $null }
+    }
+    $tgt = Get-InstallTarget $PakName
+    Copy-Item $Pak $tgt.Path -Force
+    if ($tgt.Link) {
+        Write-Host "Installed -> $($tgt.Path)  (target of the symlink $($tgt.Link))"
+        $loose = Join-Path $Paks $PakName
+        if (Test-Path -LiteralPath $loose) { Remove-Item -LiteralPath $loose -Force; Write-Host "Removed loose duplicate $loose" }
+    } else { Write-Host "Installed -> $($tgt.Path)  (loose pak: no ~mods symlink)" }
     New-Item -ItemType Directory -Force $Dest | Out-Null
-    Copy-Item (Join-Path $OutDir "zzz_ITRMap_$($Map)_Tags_P.pak") $Dest -Force
-    Write-Host "Installed -> $Dest\zzz_ITRMap_$($Map)_Tags_P.pak"
+    $TagsName = "zzz_ITRMap_$($Map)_Tags_P.pak"
+    $tt = Get-InstallTarget $TagsName
+    Copy-Item (Join-Path $OutDir $TagsName) $(if ($tt.Link) { $tt.Path } else { $Dest }) -Force
+    Write-Host "Installed -> $(if ($tt.Link) { $tt.Path } else { Join-Path $Dest $TagsName })"
 }

@@ -759,6 +759,197 @@ local function HeldTables(Map)
     return Out, N
 end
 
+-- The shared mod framework's loot slots. A manifest tag that takes them has three composite tables (table_variants V / SC / ST); the set follows
+-- the live game config: the folder of the framework's table the donor tag points at (Opt LootFrameworkMarkers), or the Opt LootFrameworkSet override.
+-- Without the framework every slot parent is missing and each composite holds exactly its base rows.
+local DefaultSetMarkers = { V = "/Game/Mods/LootTables/Vanilla/", SC = "/Game/Mods/LootTables/Scav/", ST = "/Game/Mods/LootTables/Stalker/" }
+
+local function PickLootSet(Map, M, Tags, Markers, Override)
+    if Override == "V" or Override == "SC" or Override == "ST" then
+        return Override, "config LootFrameworkSet"
+    end
+    for _, T in ipairs(Tags) do
+        local Donor = type(T.source_tag) == "string" and TMapFind(M, { TagName = FName(T.source_tag) }) or nil
+        if Donor ~= nil then
+            local Name = nil
+            pcall(function() Name = Donor.LootTable:GetFullName() end)
+            if type(Name) == "string" then
+                for _, K in ipairs({ "SC", "ST", "V" }) do
+                    if Markers[K] and Name:find(Markers[K], 1, true) then
+                        return K, "donor " .. T.source_tag .. " -> " .. Name
+                    end
+                end
+                return "V", "donor " .. T.source_tag .. " -> " .. Name .. " (no framework folder: stock or Vanilla)"
+            end
+        end
+    end
+    return "V", "no donor table readable (default)"
+end
+
+local function OwnTableName(T, C)
+    local V = type(T.table_variants) == "table" and T.table_variants[C.Set or "V"] or nil
+    return type(V) == "string" and V or T.table_name
+end
+
+-- One-shot after the first repoint to the held tables: how many rows each of the map's composite tables holds, against its base rows. A return value of a runtime
+-- UFUNCTION, never per tick. The count is self-checking: two methods, each validated on the base tables (known base_rows); failures are counted, never read as zero.
+local function CountM1(DTFL, T)
+    return DTFL:GetDataTableColumnAsString(T, FName("ItemTag")):GetArrayNum()
+end
+
+local function CountM2(DTFL, T)
+    local P = {}
+    DTFL:GetDataTableRowNames(T, P)
+    return P.OutRowNames:GetArrayNum()
+end
+
+-- -> rows | nil, error text
+local function CountWith(Fn, DTFL, T)
+    local Ok, N = pcall(Fn, DTFL, T)
+    if Ok and type(N) == "number" then return N, nil end
+    return nil, Ok and ("returned " .. type(N)) or tostring(N)
+end
+
+-- the parents of a composite: { [1..n] = table or false }, n
+local function ParentsOf(Comp)
+    local Out, N = {}, 0
+    local Ok = pcall(function()
+        Comp.ParentTables:ForEach(function(I, Elem)
+            local P = Elem:get()
+            Out[I] = Valid(P) and P or false
+            if I > N then N = I end
+        end)
+    end)
+    if not Ok then return nil, 0 end
+    return Out, N
+end
+
+local function TblName(Obj)
+    local Name = "?"
+    pcall(function() Name = Obj:GetFName():ToString() end)
+    return Name
+end
+
+local function LogFrameworkRows(Map, C, Held)
+    if C.RowsLogged then return end
+    C.RowsLogged = true
+    local Manifest = C.Manifest
+    local DTFL = nil
+    pcall(function() DTFL = StaticFindObject("/Script/Engine.Default__DataTableFunctionLibrary") end)
+    if not Valid(DTFL) or not Manifest then
+        Log("loot: framework count: DataTableFunctionLibrary not available; not counted")
+        return
+    end
+    local Slots = {}
+    for _, T in ipairs(Manifest.tags) do
+        if type(T.table_variants) == "table" and type(T.base_rows) == "number" then
+            local Tbl = Held[OwnTableName(T, C)]
+            if Valid(Tbl) then Slots[#Slots + 1] = { T = T, Tbl = Tbl } end
+        end
+    end
+    -- logged first: a native abort (not catchable by pcall) shows as this line without a result line
+    Log("loot: framework count: start (%d slot tables)", #Slots)
+    for _, S in ipairs(Slots) do
+        S.Parents, S.NP = ParentsOf(S.Tbl)
+    end
+    -- self-test on the base tables (parent 1 of each composite)
+    local Methods = { { Name = "M1", Fn = CountM1 }, { Name = "M2", Fn = CountM2 } }
+    local Trusted = nil
+    local Rep = {}
+    for _, Me in ipairs(Methods) do
+        local Good, Tested, FirstErr = 0, 0, nil
+        for _, S in ipairs(Slots) do
+            local Base = S.Parents and S.Parents[1]
+            if Base then
+                Tested = Tested + 1
+                local N, Err = CountWith(Me.Fn, DTFL, Base)
+                if N == S.T.base_rows then
+                    Good = Good + 1
+                elseif not FirstErr then
+                    FirstErr = Err or ("counted " .. tostring(N) .. ", expected " .. tostring(S.T.base_rows))
+                end
+            end
+        end
+        Rep[#Rep + 1] = string.format("%s %d/%d first error %s", Me.Name, Good, Tested, tostring(FirstErr))
+        if not Trusted and Tested > 0 and Good == Tested then Trusted = Me end
+    end
+    Log("loot: count method %s (base tables matching base_rows: %s)", Trusted and Trusted.Name or "none", table.concat(Rep, "; "))
+    if not Trusted then return end
+    -- one composite: rows, parents live, slot parents with rows (parents 2..n), slot rows
+    local function Analyze(Tbl, Parents, NP)
+        local R = { C = CountWith(Trusted.Fn, DTFL, Tbl), P = 0, K = 0, S = 0 }
+        for I = 1, NP do
+            if Parents[I] then
+                R.P = R.P + 1
+                if I > 1 then
+                    local N = CountWith(Trusted.Fn, DTFL, Parents[I])
+                    if N and N > 0 then
+                        R.K = R.K + 1
+                        R.S = R.S + N
+                    end
+                end
+            end
+        end
+        return R
+    end
+    local Sum, NTab, SumP, SumK, SumS, NK, Short = 0, 0, 0, 0, 0, 0, {}
+    local ControlSlot = nil
+    local Detail = {}
+    for _, S in ipairs(Slots) do
+        local R = Analyze(S.Tbl, S.Parents or {}, S.NP or 0)
+        local Base = S.T.base_rows
+        if R.C and R.C > Base then
+            Sum = Sum + (R.C - Base)
+            NTab = NTab + 1
+        end
+        SumP = SumP + R.P
+        SumK = SumK + R.K
+        SumS = SumS + R.S
+        if R.K > 0 then
+            NK = NK + 1
+            if not ControlSlot then ControlSlot = S.T end
+        end
+        if not R.C or R.C < Base + R.S then
+            Short[#Short + 1] = TblName(S.Tbl)
+        end
+        Detail[#Detail + 1] = string.format("loot: composite %s: rows %s (base %d), parents live %d, slot parents with rows %d (%d rows)", TblName(S.Tbl), tostring(R.C), Base, R.P, R.K, R.S)
+    end
+    Log("loot: %d framework rows in %d of %d tables (set %s); slot parents live %d/%d, with rows %d (%d rows); composites short of base + slots: %d %s",
+        Sum, NTab, #Slots, tostring(C.Set), SumP - #Slots, #Slots * 11, SumK, SumS, #Short, table.concat(Short, ", ", 1, math.min(3, #Short)))
+    -- control: the live framework composite the donor tag points at
+    local M = LootArrayOf()
+    local function DonorOf(T)
+        local Donor = M and type(T.source_tag) == "string" and TMapFind(M, { TagName = FName(T.source_tag) }) or nil
+        local Tbl = nil
+        if Donor ~= nil then pcall(function() Tbl = Donor.LootTable end) end
+        return Valid(Tbl) and Tbl or nil
+    end
+    local CTbl, CParents, CNP = nil, nil, 0
+    if ControlSlot then
+        CTbl = DonorOf(ControlSlot)
+        if CTbl then CParents, CNP = ParentsOf(CTbl) end
+    end
+    if not (CTbl and CParents and CNP > 0) then
+        for _, S in ipairs(Slots) do
+            local D = DonorOf(S.T)
+            if D then
+                local Pa, NP = ParentsOf(D)
+                if Pa and NP > 0 then CTbl, CParents, CNP = D, Pa, NP break end
+            end
+        end
+    end
+    if CTbl and CParents then
+        local R = Analyze(CTbl, CParents, CNP)
+        Log("loot: framework control %s: rows %s, parents live %d, slot parents with rows %d (%d rows)", TblName(CTbl), tostring(R.C), R.P, R.K, R.S)
+    else
+        Log("loot: framework control: no donor table is a composite (no framework installed?)")
+    end
+    local Verbose = Opt(Map, "LootDiagnostics", false)
+    if #Short > 0 or Verbose then
+        for I = 1, math.min(Verbose and #Detail or 5, #Detail) do Log("%s", Detail[I]) end
+    end
+end
+
 -- Called before the activation pass, once per session. For each manifest tag not already in LootArray: copy the donor
 -- (source_tag) entry's table, set LootPoints, TMap:Add. The map's DataTable (table_asset) if the map pak includes it, else the donor's
 -- (used points are then SHARED with the donor zone).
@@ -786,7 +977,7 @@ local function RepointLootTables(Map, ToDonor)
                 local Donor = type(T.source_tag) == "string" and TMapFind(M, { TagName = FName(T.source_tag) }) or nil
                 if Donor then pcall(function() New = Donor.LootTable end) end
             else
-                New = Held[T.table_name]
+                New = Held[OwnTableName(T, LootCtxOf(Map))]
             end
             if Back ~= nil and New ~= nil then
                 if pcall(function() Back.LootTable = New end) then N = N + 1 end
@@ -797,6 +988,7 @@ local function RepointLootTables(Map, ToDonor)
     end
     Log("loot: %s: own entries %s: %d re-pointed, %d without a table%s", Map.Name, ToDonor and "back to the donor tables (map unloaded)" or "to the map's held tables",
         N, Missing, ToDonor and "" or string.format(" (holder: %d table(s))", HeldN))
+    if not ToDonor and N > 0 then pcall(LogFrameworkRows, Map, LootCtxOf(Map), Held) end
     return N
 end
 
@@ -816,6 +1008,12 @@ local function RegisterLootTags(Map, Manifest)
     end
     local R = C.Reg
     R.Held, R.HeldN = HeldTables(Map)
+    if not C.Set then
+        local Markers = Opt(Map, "LootFrameworkMarkers", DefaultSetMarkers)
+        local Reason
+        C.Set, Reason = PickLootSet(Map, M, Tags, Markers, Opt(Map, "LootFrameworkSet", "auto"))
+        Log("loot: framework loot set %s (%s)", C.Set, Reason)
+    end
     if not R.Before then
         R.Before = TMapCount(M)
         Log("loot manifest: %d tag(s); LootArray has %d entries before", #Tags, R.Before)
@@ -839,8 +1037,20 @@ local function RegisterLootTags(Map, Manifest)
                 else
                     local Table = Donor.LootTable
                     local OwnTable = nil
+                    -- Option B: follow the live budget of the donor tag (a budget mod changes the stock zones): one-shot scale, clamped 0.25..4
+                    local SrcPts = tonumber(T.source_tag_points) or 0
+                    if SrcPts > 0 and Points > 0 and Opt(Map, "LootFollowBudgets", true) then
+                        local Live = nil
+                        pcall(function() Live = Donor.LootPoints end)
+                        if type(Live) == "number" and Live > 0 then
+                            local Ratio = math.max(0.25, math.min(4, Live / SrcPts))
+                            R.RatioMin = math.min(R.RatioMin or Ratio, Ratio)
+                            R.RatioMax = math.max(R.RatioMax or Ratio, Ratio)
+                            Points = math.max(1, math.floor(Points * Ratio + 0.5))
+                        end
+                    end
                     if type(T.table_asset) == "string" and T.table_asset ~= "" and not C.Native then
-                        OwnTable = R.Held[T.table_name or ""]
+                        OwnTable = R.Held[OwnTableName(T, C) or ""]
                         if OwnTable then
                             LogOnce("held", "loot: custom tables come from the map's table holder (%d table(s))", R.HeldN)
                         else
@@ -910,6 +1120,7 @@ local function RegisterLootTags(Map, Manifest)
     end
     C.Once = true
     C.Manifest = Manifest
+    if R.RatioMin then Log("loot: budgets follow the live game config: ratio %.2f to %.2f against the stock budgets (clamped 0.25..4)", R.RatioMin, R.RatioMax) end
     Log("loot manifest registered: LootArray %d -> %d entries (%d added, %d already present, %d without donor, %d failed, %d custom tables)",
         R.Before, TMapCount(M), R.Added, R.Skipped, R.NoDonor, R.Failed, R.Own)
     return R.Added
@@ -1992,9 +2203,45 @@ local function NativeRepointOwn(Map)
     return NR
 end
 
+-- Per-bunker return: the bunker doors (BP_ItrShowcase_BunkerDoor) write the save marker NativeBunkerReturns[i].Marker (PRGameData.CustomMarkers) when they send the
+-- player to the Hub. NativeBunkerReturn finds the first row whose marker is set; the entry then arrives at that row's X, Y, Z, Yaw (the bunker's door) instead of NativeStart,
+-- and the marker is cleared once the game accepted the transfer. Any other way out leaves no marker, so the arrival stays NativeStart (R0).
+local NativeArrive = nil       -- the NativeBunkerReturns row used by the current native entry, nil = NativeStart
+
+local function MarkerIsSet(GD, Marker)
+    local Ok, R = pcall(function() return GD:CheckMarker(Marker) end)
+    if Ok and type(R) == "boolean" then return R end
+    local Ok2, Found = pcall(function()
+        local A = GD.CustomMarkers
+        for I = 1, #A do
+            if A[I]:ToString() == Marker then return true end
+        end
+        return false
+    end)
+    return Ok2 and Found == true
+end
+
+local function NativeBunkerReturn(Map)
+    local Rows = Opt(Map, "NativeBunkerReturns", nil)
+    if type(Rows) ~= "table" then return nil end
+    local GD = GetGameData()
+    if not GD then return nil end
+    for _, R in ipairs(Rows) do
+        if type(R) == "table" and type(R.Marker) == "string" and MarkerIsSet(GD, R.Marker) then return R end
+    end
+    return nil
+end
+
+local function NativeClearMarker(R)
+    local GD = GetGameData()
+    if not GD or not R then return end
+    local Ok, Err = pcall(function() GD:UpdateMarker(R.Marker, true) end)
+    Log("native: return marker %s cleared (%s)", R.Marker, Ok and "ok" or tostring(Err))
+end
+
 -- Arrival transform for the save slot the game reads first (PlayerGameData position for the level)
 local function NativeStartTransform(Map)
-    local S = Opt(Map, "NativeStart", nil)
+    local S = NativeArrive or Opt(Map, "NativeStart", nil)
     if type(S) ~= "table" then return nil end
     local Yaw = math.rad(tonumber(S.Yaw) or 0) / 2
     return { Rotation = { X = 0, Y = 0, Z = math.sin(Yaw), W = math.cos(Yaw) },
@@ -2034,13 +2281,16 @@ local function NativeEnter(Map, Why)
         return false
     end
     local Tag = NativeState.Tag
+    NativeArrive = NativeBunkerReturn(Map)
+    if NativeArrive then Log("native: %s: return marker %s is set: arriving in bunker %s by its door", Why, NativeArrive.Marker, tostring(NativeArrive.Id)) end
     local Saved = NativeSavePosition(Map)
     Log("native: %s: calling TransferToLevel(%s) on %s (arrival position %s)", Why, Tag, GM:GetFName():ToString(),
         Saved and "saved for the level" or "from the game")
     local Res, Err = CallTransfer(GM, Tag, "None")
     Log("native: %s: TransferToLevel(%s) -> %s", Why, Tag, Err or tostring(Res))
-    if Res ~= true then return false end
-    NativeTrip = { Map = Map, T0 = Now(), Phase = "transfer", SeenTransition = false }
+    if Res ~= true then NativeArrive = nil; return false end
+    if NativeArrive then NativeClearMarker(NativeArrive) end
+    NativeTrip = { Map = Map, T0 = Now(), Phase = "transfer", SeenTransition = false, Return = NativeArrive }
     local Trip = NativeTrip
     Every(100, function()
         if NativeTrip ~= Trip then return true end
@@ -2082,7 +2332,9 @@ local function NativeEnter(Map, Why)
             local Want = ChooseArrival(Map, M)
             Log("native: arrived after %.1f s (transition seen %s): level %s, player at %s, %d TargetPoint(s), start marker %s",
                 Ms / 1000, tostring(Trip.SeenTransition), LevelNow, L and FmtV(L) or "?", #M.All, M.Start and "found" or "MISSING")
-            if Want and L and Dist3D(L, Want.Loc) > Opt(Map, "NativeArriveTolerance", 3000) then
+            if Trip.Return then
+                Log("native: arrival in bunker %s at the saved position; the R0 arrival marker is not used", tostring(Trip.Return.Id))
+            elseif Want and L and Dist3D(L, Want.Loc) > Opt(Map, "NativeArriveTolerance", 3000) then
                 Log("native: the game placed the player %.0f m from the arrival marker; moving them there", Dist3D(L, Want.Loc) / 100)
                 TeleportPlayer(Want.Loc, Want.Rot, "arrival marker")
             end

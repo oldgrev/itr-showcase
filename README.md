@@ -15,16 +15,17 @@ About 2.5 x 2.5 km playable, with a fog wall so people don't fall out of the wor
 *Layout overview, north up, east right, 250 m grid squares (A to J across, 01 to 10 down).* It is the pictured in the game map too! It's a map in the map! And on the hip tablet map! It's just maps all the way down. The playable area is about 2.5 x 2.5 km.*
 
 ## Status
-**Early test with issues.** The map loads through the game's level transfer, can be walked, and has been through
-in-game runs in VR (entry, return pads, view distance, loot, spawners, missions, climbing, the compass and the tablet map).
+**Early test with issues.** It loads and you can walk around it. Entry, the return pad, view distance, loot, spawners, missions,
+climbing, the compass and the tablet map have all been tried in VR.
 Known issues:
-- **Saving in the map load back into the hub**, not into the map. Probably be fixed later with a cool new BP loader version, but for now it is what it is.
+- **Saving in the map works now**, as long as the tags pak (`zzz_ITRMap_ItrShowcase_Tags_P.pak`) is installed with the map pak. Without it you load back into the hub.
+- The bunkers are new and have had the least testing.
 - Everything placed is still being tuned.
 - The fog wall's transition (walk into the fog, get put back inside) has not been tested. I dunno I just can never be bothered.
 - My game sometimes crashes when I exit it, but it's done that before I even installed anything so I doubt it's this.
 
-The sister repo [`itr-common`](../itr-common/) has the map-making how-to, the editor patch and the generic loader this one is
-based on, and says for each thing how far it has been tested.
+[`itr-common`](../itr-common/) has the map-making how-to, the editor patch and the generic loader this one is based on. It says
+how far each thing has been tested.
 
 ## What it looks like
 [Bill from discord gave it a test and recorded it and shared it with me and I watched it](https://www.youtube.com/watch?v=li1TlzQaiOM) and now I feel like a filthy peasant for the way that I play the game. His approach was very immersive and mine is very mechanical. I also felt bad that he spent so much time checking loot when most of it's all just scattershot at this point.
@@ -44,12 +45,12 @@ I have a playlist of all the unlisted progress videos I've been keeping that [de
 | `READMEBORING.MD` | Stuff that I moved out of this readme because it was probably boring, but it's also useful technical information. I guess. |
 
 Not in the box:
-- **The release archives and the pak.** They are **GitHub release** assets: a normal zip that unzips into the game folder, and
-  a FOMOD zip for Vortex. Both contain the pak, the loader and UE4SS trimmed to the files the loader needs, with its licence.
+- **The release archives and the pak.** Those are on the **GitHub releases** page: a normal zip and a FOMOD zip for Vortex. Both
+  have the pak, the loader and UE4SS trimmed to the files the loader needs, with its licence.
 - **A head**
 - **The game's assets.** The map references meshes, materials and textures by their `/Game/...` path and the pak
   contains none of them. The project's copies of those (under `project/Content` outside `Mods/ItrShowcase`) are
-  git-ignored. See "Opening the project".
+  git-ignored. See "Opening the project" in `READMEBORING.MD`.
 
 
 ## Cloning (Git LFS)
@@ -69,36 +70,51 @@ Download one archive from the **Releases** page:
 Both install the same files: the pak in `Content\Paks\~mods`, the loader in `Content\Paks\LuaMods\ItrShowcaseLoader`, and UE4SS
 v3.0.1-321-gc62ada0 ("UE4SS for ITR1", Nexus Mods mod 359) in the Nexus layout, where `override.txt` points UE4SS at
 `Content\Paks`. If you already run UE4SS, leave its files out (the FOMOD installer has a tick box for that). Other UE4SS builds
-are not known to work; a newer dev build crashed the game at startup in our tests.
+are not known to work; a newer dev build crashed the game at startup for me.
 
 Then continue into the Hub and enter the map in one of three ways:
 1. pick up the **tin of graphite grease** in the Hub's workshop corner, by the tool wall and workbench: a grey metal tin with a
-   yellow lid and a "GRAPHITE GREASE 500g" label (the loader recognises it by its static mesh, `Liquid08_1`). It stands with a second
-   tin and a loose lid, which do nothing; if the first tin you pick up does nothing, try its neighbour,
+   yellow lid and a "GRAPHITE GREASE 500g" label (the loader looks for its static mesh, `Liquid08_1`). There's a second tin and a
+   loose lid next to it that do nothing, so if the first tin does nothing, try the other one,
 2. press **F9**,
-3. run the console command `itrshowcase enter` (the release does not add a console; use one you have, or a mod that sends console
+3. run the console command `itrshowcase enter` (the release doesn't add a console; use one you have, or a mod that sends console
    commands).
 
- To leave, walk onto one of the **return pads** (R0 to R6), or press `F9`, or type `itrshowcase leave`. The settings, the exact paths, what is left out of UE4SS, troubleshooting and uninstalling are in [`INSTALL.md`](INSTALL.md).
+ To leave, walk onto the **return pad** (R0, at the Kordon entrance), or press `F9`, or type `itrshowcase leave`. The bunkers can also be used, see "Bunkers" below. The settings, the exact paths, what is left out of UE4SS, troubleshooting and uninstalling are in [`INSTALL.md`](INSTALL.md).
 
 
 ## Showcase missions and uninstalling
-With the map installed, the mission computer offers a "showcase" mission series of twelve missions, separate from the main story
-(no story conditions, and finishing one does not set a story flag). They come one after the other, each mission once: a finished
-mission is not offered again and brings up the next one. Eight more showcase missions are added to the stock random mission pool.
-The missions are cooked data assets in the map pak (`Content/Mods/ItrShowcase/Missions/`); the loader appends them to the game's mission
-configuration at startup and adds the objective points to the map-point configuration (`loader/ItrShowcaseLoader/Scripts/missions.lua`,
-`ItrShowcase.missions.json`). When the map loads, level progression is unlocked in your save: player level 5, the stock zones marked as
-visited, and the stock shortcut and transition flags set. That unlock is written into the save and stays after you uninstall.
+With the map installed, the mission computer offers a series of twelve "showcase" missions, separate from the main story (no story
+conditions, and finishing one does not set a story flag). They come one at a time and each one only once. Eight more go into the
+stock random mission pool. They are cooked data assets in the map pak (`Content/Mods/ItrShowcase/Missions/`). The loader adds them to
+the game's mission configuration at startup, and the objective points to the map-point configuration
+(`loader/ItrShowcaseLoader/Scripts/missions.lua`, `ItrShowcase.missions.json`).
+
+When the map loads it unlocks level progression in your save: player level 5, the stock zones marked as visited, and the stock
+shortcut and transition flags set. That stays after you uninstall.
 
 Before you uninstall, if you have an in progress mission, finish or abort the accepted showcase ones at the
 mission computer and copy the save first. I don't know what happens to an orphaned mission.
-Missions of the main story are not affected. To keep the map but turn the missions off, set
-`Missions = { Enabled = false }` in `config.lua`; that stops the loader registering them, so the same warning applies to a save that already holds one.
+To keep the map but turn the missions off, set `Missions = { Enabled = false }` in `config.lua`. The same warning applies if your
+save already has one.
+
+## Bunkers
+There are ruined buildings in Kordon, on the track by Tikhoe lake, at the rail halt by the dachas, and at the end of Zarechye's upper street, and their cellar stairs all lead to the same bunker.
+
+Inside there's a bed, a shop, a health booth, storage, a mission computer and a vise.
+
+Walk back to the landing to get back out. The tunnel door's handle can be grabbed to return to the Hub. When you want to return, you'll return back to wherever you left from.
+
+The sun and sky light are off while you're inside, because the forward renderer can't block a movable sky light with walls.
+
+Known issues with the bunkers:
+- The fade is a bit heavy handed and will be tuned.
+- If you save standing on a landing, you go through the fade when it loads.
+- The bunker is outside the map square, so the tablet map shows you off the picture while you're in it. The ruin on top of it may be visible from the edge of the map.
 
 ## It's an example, or a demo, I call it showcase
 Everything below is placed in `L_ItrShowcase` (the persistent level of the map) and grouped in the World Outliner by
-pocket: `P1_Kordon/...` to `P12_Kariera/...`, plus `Returns/R0` to `Returns/R6`, `Teleports`, `Rail`, `Water` and `Network`. The numbers are from the cooked level of the current build (counts of placed actors and instances); the outliner has the real ones.
+pocket: `P1_Kordon/...` to `P12_Kariera/...`, plus `Returns/R0`, `Teleports`, `Rail`, `Water` and `Network`. The numbers are from the cooked level of the current build (counts of placed actors and instances); the outliner has the real ones.
 
 
 ## Attribution

@@ -27,6 +27,7 @@ project/Config/Tags/*
 project/Content/*
 !project/Content/Mods/
 project/Content/Mods/*
+# (this also keeps the empty stand-ins of the shared loot slots, project/Content/Mods/ModdedData, out of git: step loot regenerates them)
 !project/Content/Mods/ItrShowcase/
 project/Content/Mods/ItrShowcase/AuditCopies
 project/Content/Mods/ItrShowcase/AuditScratch

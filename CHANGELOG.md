@@ -4,20 +4,44 @@ Status of every release: early test with issues (see "Status" in the README).
 
 ## Unreleased
 
-Not in an archive yet.
+Not in an archive yet. Changes since the 2026-10-29 build.
+
+### Loot
+- **Items from using Common Mod Dependencies are automatically used by stashes and as individual loot spawns.** 47 of the map's loot tags (all tiers' ammo, equipment,
+  food, valuables, stash and dead-man tables) are now composite tables: the map's tier rows plus the dependencies' 11 `ModdedData`
+  user slot tables of the matching stock table. The loader picks the Vanilla, Scavenger or Stalker slot set from the game config and logs it
+  (`loot: framework loot set ...`, then `loot: N framework rows in M of 47 tables`), and scales each tag's budget once by the live stock
+  budget (clamped 0.25 to 4). `LootFrameworkSet`, `LootFrameworkMarkers` and `LootFollowBudgets` are in `config.lua`.
+  The map pak has no files at the `ModdedData` paths. The Unreal project only has empty stand-ins of them, and those aren't in the repo.
+- **Five or so large stashes for checking loot** on the road just south of the arrival checkpoint, one per loot tier T1 to T5, going south.
 
 ### Saving
-- **Saves made in the map now load back into it.** Continue puts you where you saved, and items you left on the ground are still
-  there. Before, the game forgot the map's level when it read the save and opened the Hub instead. A new small pak,
-  `zzz_ITRMap_ItrShowcase_Tags_P.pak` (in `~mods` next to the map pak), registers the map's level tag. It is in both archives and
-  has to be installed and removed together with the map pak.
-- The loader logs once at startup whether the tag is registered, points the map's loot tables at the map as soon as a save load
-  brings the map in, and moves you to the arrival marker if a loaded save puts you outside the map.
+- **Saves made in the map now load back into it,** and items you left on the ground are still there. It needs a new small pak,
+  `zzz_ITRMap_ItrShowcase_Tags_P.pak`, next to the map pak in `~mods`. It's in both archives. Install and remove the two together.
+- The loader logs at startup whether the tag is registered, switches to the map's loot tables when a save loads into the map, and
+  moves you to the arrival marker if the save puts you outside the map.
+
+### Exits
+- **One return pad,** R0 at the Kordon entrance. R1 to R6 and their cyan "to entrance" pads are gone. The flattened ground they
+  stood on is still there as bare dirt circles. `NativeGates` has one row, and the tablet map shows one Hub marker.
 
 ### Map
-- **Stock tide.** The map has a stock tide actor and the game's tide sequence, linked to the map's environment, and the level
-  reloads after a tide as in the stock zones.
+- **Stock tide.** A stock tide actor and the game's tide sequence, linked to the map's environment. The level reloads after a tide
+  like a stock zone.
 - **A shelter with a bed** next to the arrival pad, for testing sleeping and shelter logic.
+- **Performance merge.** Repeated plain dressing pieces (same mesh, materials, collision, shadow setting and draw distance, inside one
+  tile) are merged into instanced meshes, and every piece gets a draw distance that follows its size. The bunker pieces stay
+  separate actors.
+- **Day cycle flicker fixed.** The sun turned a tiny amount every frame, which shifted the shadow grid and made shadows crawl. It now
+  moves in a small step once per game minute (every 2.5 real seconds).
+- **The edge of the map uses trigger boxes.** `BP_ItrShowcase_PerimeterTide` no longer tests the player every 0.1 s. Four trigger strips
+  along the square call the same transition when you walk into them.
+- **The stock tide circle is wider,** 2300 m from the centre (it was 1800 m), so the bunker is inside it.
+
+### Bunkers
+- **Four ways into one bunker,** but it only looks like one... down the cellar stairs of ruined buildings in Kordon, on the track by Tikhoe lake, at the rail halt by the dachas, and at the end of Zarechye's upper street. Walk back to the landing to get back out.
+- **Inside** there's a bed, a shop, a health booth, storage, a mission computer and a vise.
+- **Tunnel door to the Hub.** Its handle can be grabbed to return to the Hub. When you want to return, you'll return back to wherever you left from.
 
 ## 2026-10-29 build
 
@@ -54,7 +78,6 @@ Changes since the first archives (2026-10-18).
   pumice stone.
 - Return pad R6 is on the tablet map.
 - The loot manifest has 68 tags (T1 to T5, signature stashes, an example set) and budgets that follow the pockets' tiers.
-- The comments in the Lua files describe what the code does.
 
 ### Map
 - **Enemy pressure.** P2 is now tier T2 and P4 tier T3 (enemy rosters and loot follow the tier), and there are more armed Mimics.

@@ -13,7 +13,7 @@
 - Buildings (268, 9,113 stock pieces) copy the furniture and fittings of the stock building each is modelled on, at the stock positions, and sit at
   the stock depth in the ground with the terrain fitted to them. Dolina farm's big buildings copy the stock Pobeda buildings.
   Lamps in interiors are placed as their meshes (their light is kept).
-- Placed at world (-34500, -364000, 0) cm. The map is registered as its own level, so the Hub's level radius does not apply;
+- Placed at world (-34500, -364000, 0) cm. The map is registered as a separate level, so the Hub's level radius does not apply;
   the loader gives it a radius of 2.5 km around that point.
 
 ### Zone look
@@ -25,9 +25,12 @@ a day cycle, a softer sun (especially 17:00 to 20:00), sun shadows reaching abou
 
 ### The edge of the map
 The map ends in a square fog wall about 1.25 km from the centre, so there is no backdrop to build or load. The pieces:
-- `BP_ItrShowcase_PerimeterTide` (`Content/Mods/ItrShowcase/Blueprints`): a child of the game's `BP_TideBase`. It tests the player
-  against a square (about 1247 m from the centre) every 0.1 s instead of the stock circle and then calls the stock `DoTransition`:
-  the player is moved to one of the respawn points and the level is re-entered through the game's transition.
+- `BP_ItrShowcase_PerimeterTide` (`Content/Mods/ItrShowcase/Blueprints`): a child of the game's `BP_TideBase`. It has four trigger
+  strips along a square (about 1247 m from the centre) instead of a test against the stock circle. Walking into one calls the stock
+  `DoTransition`: the player is moved to one of the respawn points and the level is re-entered through the game's transition. It does
+  no work until the player enters a strip.
+- `ItrShowcase_StockTide` (the stock `BP_Tide`) has its circle set to 2300 m, so the shared bunker outside the square is inside it. Outside
+  that circle the stock tide reloads the level.
 - Seven `BP_SpawnSpline` actors inside the nav volumes are the respawn points (`PlayerSpawn`).
 - Twelve `FogWall_*` plane actors (four sides, three layers: fog, masked fog and an opaque backstop) with the game's fog materials
   (`FogMaterial_Inst`, `MI_FogMaterial_Masked`), up to 180 m high.
@@ -49,16 +52,19 @@ select one to see how it is configured.
 | Loot | `BP_RandomLoot` (about 500) | `<Pocket>/Gameplay/Loot` | `LootTable` is a custom tag (`Loot.ItrShowcase.T1.Ammo`), `LootPoints` is the node's share of the tag's budget, `InstanceID`/`InstanceIDPrefix` are set so the save can key them. Tags are per tier and category: Ammo, Equipment, FoodBaseItem, plus stashes. |
 | Artifacts | `BP_RandomLoot` (about 190 of the 500, one point each) | `<Pocket>/Gameplay/Artifacts` | Loot nodes next to the anomalies, on the per-tier `Loot.ItrShowcase.<tier>.Artifact` tags. |
 | Stashes and corpses | `BP_Stash_Small`, `BP_Stash_Large` (about 330 together), `BP_Corpse` (2) | `<Pocket>/Gameplay/Stashes` | Same `LootTable` mechanism with the `Stash.Red`, `Stash.Grey`, `Stash.Valuables` and `Stash.Deadmans` tags, plus ten signature stashes. Stashes are placed out of sight rather than in the open. |
-| Anomalies | `BP_Anomaly_Gas`, `_Grass`, `_Web`, `_Distortion`, `_Lightning` (about 270) | `<Pocket>/Gameplay/Anomalies` | One actor each, no property overrides. The game's anomaly clusters are driven by map-point data registered per level, so as far as we know they don't work in a custom map; this map uses single anomalies. |
+| Anomalies | `BP_Anomaly_Gas`, `_Grass`, `_Web`, `_Distortion`, `_Lightning` (about 270) | `<Pocket>/Gameplay/Anomalies` | One actor each, no property overrides. The game's anomaly clusters are driven by map-point data registered per level, so as far as I know they don't work in a custom map; this map uses single anomalies. |
 | Mission points | `BP_ItrShowcase_MissionPoint` (20) | the pockets | Objective points of the showcase missions. The loader registers each point's tag and position with the game's map-point configuration. |
 | AI cover | `ItrShowcase_CoverLoader`, a child of the game's `ACoverLoader` (`Content/Mods/ItrShowcase/Blueprints/BP_ItrShowcase_CoverLoader`) | persistent level | One actor holding the cover and shooting-position arrays (plain world-space `FVector`s, the same data the zone levels carry) with the zone's `CoverSettings`. |
 | Navmesh | `NavMeshBoundsVolume` (12) | `Nav` | Volumes around the gameplay footprints, not the whole map, baked for the game's two agents (Default and Big). |
 | Teleports | `TargetPoint`s tagged `itr:tp:<group>/<name>` | `Teleports/<group>` | Standing-height points on walkable ground (dry, not on a steep slope). The game ignores the tag; it is a label that tools such as a teleport menu can list. |
-| Exits and arrivals | `TargetPoint`s tagged `itr:player_start`, `itr:exit` + `itr:exit_id:R<n>`, `itr:arrive:R<n>` | `Returns/R0` to `Returns/R6` | Read by the loader. Walking onto an exit marker takes you back to the Hub; the next entry puts you at the matching arrive marker. R0 is the entrance at P1; R6 is at the lake (P4). |
-| Return pads | a flat disc and a light beam (static meshes) | `Returns/R<n>` | The visible part of each exit: stand on the pad and the loader's exit marker on it sends you to the Hub. |
-| To-entrance pads | `BP_ItrShowcase_TeleportPad` | `Returns/R<n>` | An engine-only Blueprint (no game classes) beside R1 to R6 that teleports you inside the map, back to the R0 start area. |
+| Exits and arrivals | `TargetPoint`s tagged `itr:player_start`, `itr:exit` + `itr:exit_id:R<n>`, `itr:arrive:R<n>` | `Returns/R0` | Read by the loader. Walking onto an exit marker takes you back to the Hub; the next entry puts you at the matching arrive marker. The map has one, R0, the entrance at P1. The loader supports any number; the generator can place more. |
+| Return pad | a flat disc and a light beam (static meshes) | `Returns/R0` | The visible part of the exit: stand on the pad and the loader's exit marker on it sends you to the Hub. |
+| Bunker airlocks | `BP_ItrShowcase_Airlock` (five: `B1_Airlock` to `B4_Airlock` and `S_Airlock`) | the cellar landings | The landing's `Trigger` box starts the fade (`StartCameraFade`) and moves the player to the matching landing, keeping the pose. The site's id goes in the save marker `ItrShowcase:shared:from:<id>`, which picks the exit. `S_Airlock` also has a `Shelter` box around the bunker: entering it hides the sun and sky light, leaving it shows them, so loading a save inside works too. There's no polling. |
+| Bunker trigger boxes | the `Trigger`, `Exit` and `Shelter` boxes, and the tide strips | on those actors | Object type `Trigger`, Pawn set to Overlap, everything else Ignore. The object type matters: the player's collision ignores WorldDynamic, so a box with the usual `OverlapAllDynamic` object type never fires for the player. |
+| Bunker door | `BP_ItrShowcase_BunkerDoor` | the shared bunker | Grabbing it sets the save marker `ItrShowcase:return:S` and transfers to the Hub. The loader's `NativeBunkerReturns` row `S` uses that marker to arrive by the door on the next entry. |
+| Bunker services | stock health booth, storage, mission computer, shop, bed and vise | the shared bunker | The stock UI binds the first health booth, storage and mission computer it finds, so a map can only have one health booth, one storage and one mission computer. |
 | Fog perimeter | `BP_ItrShowcase_PerimeterTide`, `BP_SpawnSpline`, `FogWall_*` | `Global/Perimeter` | See "The edge of the map". |
-| Map board and tablet map | a two-sided map sign (a `StaticMeshActor` tagged `itr:mapboard`) carrying the material instance `MI_ItrShowcase_Map` | at the entrance | The picture on the sign is also what the hip tablet shows while you are in the map: the loader points the map's level row at the sign's material, and adds one `LevelGates` row per return pad so the pads show as markers. |
+| Map board and tablet map | a two-sided map sign (a `StaticMeshActor` tagged `itr:mapboard`) carrying the material instance `MI_ItrShowcase_Map` | at the entrance | The picture on the sign is also what the hip tablet shows while you are in the map: the loader points the map's level row at the sign's material, and adds one `LevelGates` row per return pad (one, R0) so the pad shows as a marker. |
 | Runtime settings | `BP_ItrShowcase_MapSettings`, `BP_ItrShowcase_CompassSky`, `BP_ItrShowcase_Progression` | persistent level | Blueprint actors that do what a loader would otherwise do every tick: `MapSettings` sets `r.ViewDistanceScale 6` and `foliage.LODDistanceScale 6` in BeginPlay and restores the earlier values in EndPlay, `CompassSky` sets the compass target, `Progression` sets the player level and the trigger flags of the progression unlock. |
 
 ### Loot setup
@@ -96,7 +102,7 @@ transfer (`TransferToLevel`), so the transition, the unload of the Hub, the prep
 run as they do for a stock zone. What it does, at startup, before the main menu:
 - adds a streaming entry for `L_ItrShowcase` (`LevelStreaming::CreateInstance`) and a level row to the system config's
   `LevelConfigurations`, copied from the Buffer zone (time, inventory, sleep, saves, map scale; radius 2.5 km);
-- adds the map centre and one level-gate row per return pad to the map-point config, and registers the loot tags (above);
+- adds the map centre and one level-gate row per return pad (one, R0) to the map-point config, and registers the loot tags (above);
 - once the game is idle, registers the showcase missions (see "Showcase missions and uninstalling").
 
 Entering and leaving are triggers on top of that (`loader/ItrShowcaseLoader/Scripts/config.lua`): the tin of graphite grease, `F9`, the
@@ -113,7 +119,7 @@ saved position.
   The game reads every tag ini in that folder at startup.
 - The ini is two lines: the section `[/Script/GameplayTags.GameplayTagsList]` and
   `GameplayTagList=(Tag="Level.Zone.ItrShowcase",DevComment="...")`. It registers only the level tag.
-- The file name is unique on purpose. A pak file at the same path as a game file replaces it, so reusing the name of the stock level
+- The file name has to be unique. A pak file at the same path as a game file replaces it, so reusing the name of the stock level
   tag list (`LevelGameplayTags.ini`) would unregister every stock level.
 - It is a separate pak because a Config file changes a pak's mount point, and the map pak stays mounted at
   `../../../IntoTheRadius/Content/Mods/ItrShowcase/`.
@@ -123,10 +129,10 @@ saved position.
 
 ## Opening the project
 You can open `project/IntoTheRadius.uproject` to inspect the level, the Blueprints and the placements. What that needs:
-- **Engine.** Unreal 4.27. We only opened it with the **patched Oculus 4.27 editor** from `itr-common` (route B in its
+- **Engine.** Unreal 4.27. I only opened it with the **patched Oculus 4.27 editor** from `itr-common` (route B in its
   [guide](../itr-common/map-making/guide.md)), which the landscape material needs. A stock editor is untested.
 - **It is a code project.** `project/Source/IntoTheRadius` is a recreation of the game's C++ module, generated from
-  the game's reflection data by a script in the maintainer's workspace (not in this repo) and verified against the game (classes,
+  the game's reflection data by a script in my workspace (not in this repo) and verified against the game (classes,
   properties, functions, flags, native defaults; function bodies are empty). Copy the community SDK's `VRExpansionPlugin`
   and `ModFramework` plugins into `project/Plugins/`. Compile it the first time you open the project (Visual Studio with
   the C++ game workload).
