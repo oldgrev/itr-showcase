@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ITR map guide: loot</title>
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+
+<h1>Loot</h1>
+<p>How Into the Radius decides what's in a stash, how to set that up in your map, and how to get items from other mods into it. Open the example project next to this page and compare as you go.</p>
+
+<div class="box"><b>Have these open</b>
+ <ul>
+  <li>The map in the editor: <code>project/Content/Mods/ItrShowcase/L_ItrShowcase.umap</code>. <a href="../../READMEBORING.MD">READMEBORING</a> says what opening it needs.</li>
+  <li>The manifest: <a href="../../loader/ItrShowcaseLoader/Scripts/ItrShowcase.loot.json"><code>ItrShowcase.loot.json</code></a>.</li>
+  <li>The example pak installed, if you want to see the result in game.</li>
+ </ul></div>
+
+<h2>How ITR does loot</h2>
+<p>Loot starts at a <b>loot node</b>: an actor in the level that marks where items can appear. A node doesn't list any items. It holds a <b>loot tag</b> (a gameplay tag, which is a dotted name like <code>Loot.Factory.Stash.Grey</code>), a number of points and an id.</p>
+<p>The game keeps one global list, <code>LootArray</code>, in its config asset <code>DA_GameConfig</code>. Each entry maps a loot tag to a <b>loot table</b> (a DataTable where each row is an item and its cost in points) and a <b>budget</b> (how many points all the nodes on that tag can spend between them).</p>
+
+<figure>
+<svg viewBox="0 0 700 150" role="img" aria-label="A node's tag finds a table and budget, rows name item tags, the item table gives the Blueprint, and items appear in the node's box">
+ <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#2f6f4f"/></marker></defs>
+ <g font-family="sans-serif" font-size="13" text-anchor="middle" fill="#222">
+  <rect x="4" y="20" width="122" height="104" rx="8" fill="#eef6ee" stroke="#2f6f4f"/>
+  <text x="65" y="44" font-weight="bold">Loot node</text><text x="65" y="68">tag</text><text x="65" y="86">points</text><text x="65" y="104">id</text>
+  <rect x="146" y="20" width="122" height="104" rx="8" fill="#fff" stroke="#c9bd9b"/>
+  <text x="207" y="44" font-weight="bold">LootArray</text><text x="207" y="68">tag gives</text><text x="207" y="86">table</text><text x="207" y="104">and budget</text>
+  <rect x="288" y="20" width="122" height="104" rx="8" fill="#fff" stroke="#c9bd9b"/>
+  <text x="349" y="44" font-weight="bold">Loot table</text><text x="349" y="68">rows:</text><text x="349" y="86">item tag</text><text x="349" y="104">and cost</text>
+  <rect x="430" y="20" width="122" height="104" rx="8" fill="#fff" stroke="#c9bd9b"/>
+  <text x="491" y="44" font-weight="bold">Item table</text><text x="491" y="68">item tag gives</text><text x="491" y="86">the item's</text><text x="491" y="104">Blueprint</text>
+  <rect x="572" y="20" width="122" height="104" rx="8" fill="#eef6ee" stroke="#2f6f4f"/>
+  <text x="633" y="44" font-weight="bold">Items</text><text x="633" y="68">packed in</text><text x="633" y="86">the node's box</text><text x="633" y="104">near the player</text>
+ </g>
+ <g stroke="#2f6f4f" stroke-width="2" marker-end="url(#arrow)">
+  <line x1="126" y1="72" x2="145" y2="72"/><line x1="268" y1="72" x2="287" y2="72"/><line x1="410" y1="72" x2="429" y2="72"/><line x1="552" y1="72" x2="571" y2="72"/>
+ </g>
+</svg>
+<figcaption>Everything is found by name, with no level involved, so a tag works in any map.</figcaption>
+</figure>
+
+<p>When a level is prepared, each node does this once:</p>
+<ol>
+ <li>It looks up its id in the save. If it already rolled, it keeps what it got.</li>
+ <li>It asks for loot with its tag and points. The game spends up to the node's points, or whatever is left of the budget, on rows from the table.</li>
+ <li>The result goes in the save under the node's id. A node that gets nothing hides itself.</li>
+ <li>Once you're within 100 m, the items spawn and get packed into the node's box. Items that don't fit are dropped if the node has <code>Exclude Non Fit</code> on.</li>
+</ol>
+<p>Used points are counted per table name, and they're kept in the save. A tag stops giving loot when its budget is spent. Stock budgets are small: Buffer's train station ammo tag has a budget of 32 against 140 points of placed nodes, so a lot of nodes come up empty. That's why a big map reusing stock tags turns out sparse, and it would eat the budget of the real zone as well.</p>
+<p>A tide refills the nodes. I've seen that in this map, including from a tide that passed while I was in the Hub.</p>
+<div class="unknown">The picking is native code, so I've only seen it from the outside. A row repeated N times seems to count N times, which is how stock tables weight items. I got that from the data. I haven't read the pick itself.</div>
+
+<h2>Which Blueprints and data are involved</h2>
+<div class="tablewrap"><table>
+ <tr><th>Piece</th><th>Where</th><th>What it's for</th></tr>
+ <tr><td><code>BP_RandomLoot</code></td><td><code>/Game/ITR/BPs/Items/Containers</code></td><td>Loose items on a surface. Stock zones usually give ammo nodes 4 points, food 2, equipment and valuables 1.</td></tr>
+ <tr><td><code>BP_Stash_Small</code></td><td>same</td><td>The small stash case. 5 points in stock zones.</td></tr>
+ <tr><td><code>BP_Stash_Large</code></td><td>same</td><td>The large stash case. 9 points in stock zones.</td></tr>
+ <tr><td><code>BP_Corpse</code></td><td>same</td><td>A body with loot. It runs on the class's default points.</td></tr>
+ <tr><td><code>BP_LootSpawnPoint</code></td><td>same</td><td>The parent of all of the above.</td></tr>
+ <tr><td><code>DA_GameConfig</code></td><td><code>/Game/ITR/Configurations</code></td><td>Holds <code>LootArray</code>, 89 tags in the stock game.</td></tr>
+ <tr><td><code>DA_InfosConfig</code></td><td>same</td><td>Points at the item table, <code>DT_ItemInfos</code> in the stock game. That table turns an item tag into a Blueprint, a name and a price.</td></tr>
+ <tr><td>A loot table</td><td>Stock ones in <code>/Game/ITR/Configurations/Loot/&lt;Zone&gt;</code></td><td>A DataTable with the row structure <code>PRLootEntryConfig</code>.</td></tr>
+</table></div>
+
+<h3>The fields you'll set on a node</h3>
+<div class="tablewrap"><table>
+ <tr><th>Field</th><th>Meaning</th></tr>
+ <tr><td><code>Loot Table</code></td><td>The loot tag. The name says table, but it's a tag.</td></tr>
+ <tr><td><code>Loot Points</code></td><td>The most this node can spend.</td></tr>
+ <tr><td><code>Instance Id</code>, <code>Instance Id Prefix</code></td><td>The save key. Every node needs a different id.</td></tr>
+ <tr><td><code>Custom Loot Configs</code></td><td>A fixed item list. If it's filled, the node skips the table and the budget. Mission stashes use this. I haven't used it in a placed node.</td></tr>
+</table></div>
+
+<h3>The fields in a loot row</h3>
+<div class="tablewrap"><table>
+ <tr><th>Field</th><th>Meaning</th></tr>
+ <tr><td><code>ItemTag</code></td><td>Which item.</td></tr>
+ <tr><td><code>LootPoints</code></td><td>What it costs. In Castle's grey stash table, weapons cost 6 and magazines 1.</td></tr>
+ <tr><td><code>RandomizeDurability</code>, <code>RandomDurability</code></td><td>Condition range in percent.</td></tr>
+ <tr><td><code>RandomizeAmmo</code>, <code>RandomAmmo</code>, <code>AmmoType</code></td><td>How full a magazine or box is, and with what.</td></tr>
+ <tr><td><code>ChangeLootPointsFromDurability</code>, <code>ChangeLootPointsFromAmmo</code></td><td>By the name, these change the cost with the roll. I haven't tested either.</td></tr>
+ <tr><td><code>ConfigTags</code></td><td>Extra tags on the item. Stock tables use them for cassette groups. Leave it empty otherwise.</td></tr>
+</table></div>
+<div class="warn">If you import rows from a CSV, drop the <code>ConfigTags</code> column. A cell with <code>()</code> imports as one empty tag on every row, and for me that gave 16 items where the same nodes gave 660 once it was gone.</div>
+
+<h2>What it depends on</h2>
+<div class="tablewrap"><table>
+ <tr><th>It needs</th><th>Why</th><th>Without it</th></tr>
+ <tr><td>A loader that adds your tags</td><td><code>LootArray</code> is inside a game asset that loads at startup, and nothing in a level can add to it. The UE4SS loader adds your tags from the manifest.</td><td>The node falls back to a table picked by the current level. I don't know what that gives in a custom level.</td></tr>
+ <tr><td>The tag listed for the editor</td><td>The editor clears a tag it doesn't know from a node's field. The game itself is fine with it: the loot tags in this map aren't registered in game and they roll.</td><td>Your node saves with an empty tag.</td></tr>
+ <tr><td>The map registered as a level</td><td>The game's level prepare is what makes nodes roll. The loader registers the map as a level by default.</td><td>In the loader's streaming fallback (off by default), the loader starts the roll itself. The <a href="../../../itr-common/loader-ue4ss/README.md">itr-common loader README</a> has the details.</td></tr>
+ <tr><td>Your tables kept loaded (only if you make tables)</td><td>The garbage collector doesn't look inside the game config, so a table only the config refers to gets collected. My first version did that and all 1184 nodes came out empty. This map's loader loads the chosen set's tables when the game starts and keeps them in the game instance's <code>ReferencedObjects</code> array, which the collector does read. It doesn't re-point anything afterwards, and no actor in the level is involved.</td><td>Nodes come out empty.</td></tr>
+ <tr><td>A unique id on each node</td><td>The roll is saved by id.</td><td>The second node finds the first one's saved roll.</td></tr>
+ <tr><td>A row in the item table for each item</td><td>A row only names a tag. The item table is what makes it an item.</td><td>The exe has a log message for this, <code>Invalid Item TypeID</code>. I haven't tested what a player gets.</td></tr>
+</table></div>
+<p>A node that already rolled keeps its roll, so changing a table does nothing for nodes in an existing save. To test a change, give the nodes new ids or use a new save.</p>
+
+<h2>Add loot to your map</h2>
+<h3>Plan first: pick option A, B or C</h3>
+<div class="tablewrap"><table>
+ <tr><th>Option</th><th>You make</th><th>Items from other mods</th><th>Budget</th></tr>
+ <tr><td><b>A: borrow a stock table</b></td><td>A line in the manifest</td><td>Should arrive, since you roll the same table a stock zone does. Not tested.</td><td>Your tag's number, but used points are shared with that stock zone.</td></tr>
+ <tr><td><b>B: your table</b></td><td>A DataTable and a line in the manifest</td><td>No</td><td>Separate</td></tr>
+ <tr><td><b>C: your table plus slots</b> (this map)</td><td>Everything in B, plus a composite table and empty stand-ins</td><td>Yes, see <a href="#custom">custom items</a></td><td>Separate</td></tr>
+</table></div>
+<p>Also decide how many tags. One per kind of node per difficulty tier is what this map does, for example ammo, food and two stash colours for each tier. For the budget, add up the Loot Points of the nodes on a tag if you want every node to fill. A lower number makes the tag scarce the way stock zones are.</p>
+<p>In one test a budget of 1 hid the node and a budget of 0 didn't block anything, so don't use 0 to switch a tag off.</p>
+
+<h3>Option A: borrow a stock table</h3>
+<ol>
+ <li>Make <code>Config/Tags/MyMapGameplayTags.ini</code> in your project with the section line <code>[/Script/GameplayTags.GameplayTagsList]</code>.</li>
+ <li>Add a line for your tag: <code>GameplayTagList=(Tag="Loot.MyMap.T1.Ammo",DevComment="")</code></li>
+ <li>Restart the editor, so it picks up the tag.</li>
+ <li>Drag <code>BP_RandomLoot</code> from <code>/Game/ITR/BPs/Items/Containers</code> into the level.</li>
+ <li>Set <code>Loot Table</code> to your tag and <code>Loot Points</code> to 4.</li>
+ <li>Set <code>Instance Id</code> to something nobody else will use, such as <code>MyMap-R1-RandomLoot-000001</code>, and <code>Instance Id Prefix</code> to <code>MyMap-R1-RandomLoot-</code>. Stock nodes have ids like <code>RandomLoot-3880</code>, so a longer id with your map's name won't clash. I don't know what the prefix does by itself.</li>
+ <li>Copy <code>Example.loot.example.json</code> from <a href="../../../itr-common/loader-ue4ss/ITRMapLoader/Scripts/">the itr-common loader</a> to your loader's <code>Scripts</code> folder as <code>MyMap.loot.json</code>, where <code>MyMap</code> is the map's <code>Name</code> in <code>config.lua</code>.</li>
+ <li>Keep one entry and fill in <code>tag</code>, <code>source_tag</code> (the stock tag to borrow) and <code>loot_points</code>.</li>
+ <li>Cook and install the map with <a href="../../project/build-map.ps1"><code>build-map.ps1</code></a>, and start the game.</li>
+ <li>Open <code>UE4SS.log</code> and find <code>loot manifest registered</code>. It should say <code>0 without donor, 0 failed</code>.</li>
+ <li>Go to the node in game.</li>
+</ol>
+<p>The loader skips a tag whose <code>source_tag</code> isn't in <code>LootArray</code>, so check the spelling. The stock tags are in <code>Config/Tags/LootGameplayTags.ini</code>, which comes with the SDK's <code>Config</code>.</p>
+
+<h3>Option B: your table</h3>
+<p>Do the steps for option A first, then:</p>
+<ol>
+ <li>In the Content Browser, go to <code>/Game/Mods/MyMap/Loot</code>. Right-click, Miscellaneous, Data Table, and pick the row structure <code>PRLootEntryConfig</code>. Name it <code>DT_Loot_MyMap_T1_Ammo</code>.</li>
+ <li>Add rows, one per item. Give the row names a prefix of your choosing (<code>MyMap_0</code>, <code>MyMap_1</code>). Repeat a row to make that item more common.</li>
+ <li>In the manifest, add <code>table_name</code> (<code>DT_Loot_MyMap_T1_Ammo</code>) and <code>table_asset</code> (<code>/Game/Mods/MyMap/Loot/DT_Loot_MyMap_T1_Ammo.DT_Loot_MyMap_T1_Ammo</code>). Keep <code>source_tag</code>: the loader needs it to find the stock tag to borrow, and uses that stock table if it can't load yours.</li>
+ <li>Cook, install and start the game. In <code>UE4SS.log</code>, find <code>loot manifest registered</code>. The number before <code>custom tables</code> should equal the number of manifest entries that name a table.</li>
+</ol>
+<p>The cook packs only <code>/Game/Mods/MyMap</code>, so your table has to be in that folder. This page describes <a href="../../loader/ItrShowcaseLoader/Scripts/main.lua"><code>main.lua</code> in this map's loader</a>. I haven't checked the <a href="../../../itr-common/loader-ue4ss/README.md">itr-common loader</a> against it.</p>
+
+<h2 id="custom">Make it work with custom items</h2>
+<h3>How a row reaches an item</h3>
+<p>A loot row holds a gameplay tag and nothing else about the item. At roll time the game looks that tag up in the item table. So a modded item needs two things to drop: a row somewhere in the loot table being rolled, and a row in the item table. Neither of those depends on the level.</p>
+
+<h3>How a mod's item gets into a stock table</h3>
+<p>A loader can't add rows at runtime, because Lua can't reach a table's row map. Item mods get around that with <b>Common Mod Dependencies</b>, the shared framework they plug into, and an Unreal feature called a <b>composite table</b>. A composite has no rows to edit. It has a list of parent tables, and when it loads, the engine builds its rows by adding each parent's rows in order. A later row with the same name replaces an earlier one, and a parent that doesn't exist is skipped.</p>
+<p>Common Mod Dependencies does this:</p>
+<ol>
+ <li>It replaces <code>DA_GameConfig</code>, so all the stock loot tags point at composites such as <code>/Game/Mods/LootTables/Vanilla/DTC_Loot_Factory_StashGrey</code>.</li>
+ <li>Each composite has 12 parents: the stock table first, then 11 <b>slots</b>, <code>/Game/Mods/ModdedData/User0</code> to <code>User10</code>.</li>
+ <li>It installs every slot as an empty table.</li>
+ <li>It does the same for items: <code>DA_InfosConfig</code> points at composites like <code>DTC_ItemInfosVanillaScav</code>, with slots <code>User1</code> to <code>User10</code>.</li>
+</ol>
+<p>A mod adds an item by putting a table with rows at a slot path, in a pak that wins over the empty one. A pak whose path sorts later wins the same file, so <code>~mods</code> beats <code>Paks</code>, and <code>zzz_</code> beats <code>AA_</code>. Here's a slot path, for the stock Factory grey stash table, slot 5:</p>
+<pre><code>/Game/Mods/ModdedData/User5/LootTables/Vanilla/DT_Loot_Factory_StashGrey_V_User5</code></pre>
+<p>The framework comes in three versions, and each points the tags at one of three sets of tables: Vanilla (<code>_V_</code>), Scavenger (<code>_SC_</code>) and Stalker (<code>_ST_</code>). The item mods I've looked at fill all three.</p>
+<p>The three item mods I've got installed use slots 0, 5 and 6. Two mods in the same slot overwrite each other, and I don't know of a list of who uses which.</p>
+
+<h3>What that means for your map</h3>
+<p>A plain table you make doesn't list the slot tables, so a mod's rows never get into it. To fix that, make your table a composite too, with the same slots as parents. Then a mod's rows land in the stock zone and in your map, and the mod needs no change.</p>
+
+<figure>
+<svg viewBox="0 0 700 214" role="img" aria-label="A stock composite and the map's composite both list the same slot tables as parents, so a mod that fills a slot reaches both">
+ <defs><marker id="arrow2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#2f6f4f"/></marker></defs>
+ <g font-family="sans-serif" font-size="13" text-anchor="middle" fill="#222">
+  <rect x="4" y="14" width="200" height="186" rx="8" fill="#fff" stroke="#c9bd9b"/>
+  <text x="104" y="38" font-weight="bold">Stock zone's composite</text>
+  <text x="104" y="60" font-family="Consolas,monospace" font-size="11">DTC_Loot_Factory_StashGrey</text>
+  <rect x="18" y="82" width="172" height="52" rx="6" fill="#f4eedf" stroke="#c9bd9b"/>
+  <text x="104" y="104">first parent:</text><text x="104" y="122">the stock rows</text>
+  <text x="104" y="166">tag: Loot.Factory.Stash.Grey</text>
+  <rect x="250" y="14" width="200" height="186" rx="8" fill="#eef6ee" stroke="#2f6f4f" stroke-dasharray="5"/>
+  <text x="350" y="38" font-weight="bold">Slots User0 to User10</text>
+  <text x="350" y="60" font-family="Consolas,monospace" font-size="11">..._StashGrey_V_User&lt;n&gt;</text>
+  <text x="350" y="104">Empty, until a mod's pak</text><text x="350" y="122">puts rows in one.</text>
+  <text x="350" y="166">Your pak has no files here.</text>
+  <rect x="496" y="14" width="200" height="186" rx="8" fill="#fff" stroke="#c9bd9b"/>
+  <text x="596" y="38" font-weight="bold">The map's composite</text>
+  <text x="596" y="60" font-family="Consolas,monospace" font-size="10">DTC_Loot_ItrShowcase_T3_Stash_Grey_V</text>
+  <rect x="510" y="82" width="172" height="52" rx="6" fill="#f4eedf" stroke="#c9bd9b"/>
+  <text x="596" y="104">first parent:</text><text x="596" y="122">the map's rows</text>
+  <text x="596" y="166">tag: Loot.ItrShowcase.T3...</text>
+ </g>
+ <g stroke="#2f6f4f" stroke-width="2" marker-end="url(#arrow2)">
+  <line x1="204" y1="108" x2="249" y2="108"/><line x1="496" y1="108" x2="451" y2="108"/>
+ </g>
+</svg>
+<figcaption>The dashed box is the only part shared between the two. Your budget stays separate because your composite has a different name.</figcaption>
+</figure>
+
+<h3>Option C: one table, one set</h3>
+<p>Do the steps for option B first. The table you made there is your base table. In these steps it's a tier-3 grey stash modelled on the stock Factory one.</p>
+<ol>
+ <li>Pick the stock table you modelled yours on: <code>DT_Loot_Factory_StashGrey</code>. Copy the name exactly. Some have odd spellings, such as <code>DT_Loot_Buffer_CarDEpot_Ammo</code>.</li>
+ <li>Give your table's rows a prefix if they don't have one. A stock-style <code>NewRow_0</code> could get replaced by a mod's row of the same name.</li>
+ <li>Create the folder <code>/Game/Mods/ModdedData/User0/LootTables/Vanilla</code>.</li>
+ <li>In it, make a Data Table with the row structure <code>PRLootEntryConfig</code>, named <code>DT_Loot_Factory_StashGrey_V_User0</code>. Add no rows. It's a <b>stand-in</b>: the editor needs something at that path to save a reference to it.</li>
+ <li>Do the same for <code>User1</code> to <code>User10</code>, changing the number in the folder and in the name. That's 11 per table, and an editor Python script would save you some clicking. There isn't one in this repo.</li>
+ <li>In <code>/Game/Mods/MyMap/Loot</code>, right-click, Miscellaneous, Composite Data Table, with the same row structure. Name it <code>DTC_Loot_MyMap_T3_Stash_Grey_V</code>.</li>
+ <li>Open it. In the Properties panel, add 12 entries to <code>Parent Tables</code>: your base table first, then the stand-ins from 0 to 10. Save.</li>
+ <li>In the manifest, set <code>table_name</code> and <code>table_asset</code> to the composite.</li>
+ <li>Cook. Check the pak with <code>UnrealPak &lt;pak&gt; -List</code>: there should be no <code>ModdedData</code> line. <code>build-map.ps1</code> only packs <code>/Game/Mods/MyMap</code>, so they stay out. An empty stand-in in your pak could beat a mod's real slot table.</li>
+</ol>
+<p>Without Common Mod Dependencies the slots don't exist, so the engine skips them and you get your base rows. That's from the engine source. I haven't tested it in game.</p>
+
+<h3>All three sets</h3>
+<p>With one set, people on the Scavenger or Stalker version get the Vanilla rows. To follow the version they're on, make three composites for each table (<code>_V</code>, <code>_SC</code>, <code>_ST</code>), with slots in <code>LootTables/Vanilla</code>, <code>LootTables/Scavenger</code> and <code>LootTables/Stalker</code>, and list all three in the manifest under <code>table_variants</code>. The loader in this repo picks the set once at startup, from the folder the stock tag's table is in. The <a href="../../../itr-common/loader-ue4ss/README.md">itr-common loader</a> reads <code>table_name</code> only, so use <code>main.lua</code> from <a href="../../loader/ItrShowcaseLoader/Scripts/main.lua">this map's loader</a> for this. I've only run the Vanilla set.</p>
+
+<h3>Keeping the mod's share right</h3>
+<p>A mod's rows compete with yours by row count, and I assume mod authors balance against the size of the stock table. If your base table is much shorter than the stock one, mod items come up more than they would in a stock zone. To even that out, repeat all your rows <code>max(1, round(stock rows / your rows))</code> times. Mod rows don't add to your budget. They share it.</p>
+
+<h3>What reaches a composite map and what doesn't</h3>
+<div class="tablewrap"><table>
+ <tr><th>A mod that...</th><th>Reaches your map?</th></tr>
+ <tr><td>fills a slot of a stock table your composite lists</td><td>Yes. I've seen it in this map.</td></tr>
+ <tr><td>fills a slot of a stock table you didn't list</td><td>No. Each composite takes the slots of one stock table, so tier 3 ammo here gets the Quarry ammo slots and misses the other Factory areas.</td></tr>
+ <tr><td>replaces the stock tables at their stock paths (a loot overhaul)</td><td>No. The stock table isn't a parent of your composite.</td></tr>
+ <tr><td>places fixed items through the framework's level config</td><td>No. That data has one field per stock level.</td></tr>
+ <tr><td>replaces the stash or node Blueprints</td><td>Should do, if you place the stock classes. Not tested.</td></tr>
+ <tr><td>changes the stock budgets</td><td>With <code>LootFollowBudgets</code> on, your budget scales by the same ratio, clamped 0.25 to 4.</td></tr>
+</table></div>
+
+<h3>Your map's items</h3>
+<p>This map adds no new items, so none of it is tested here. It's the route a small item mod takes, and I'd build it as a separate pak the way they do, since <code>build-map.ps1</code> only packs <code>/Game/Mods/MyMap</code>. Making the item itself (Blueprint, hand poses and so on) isn't covered on this page.</p>
+<ol>
+ <li>Add a line for the item's tag to a tag ini in <code>Config/Tags</code>. Pack that ini into a small tag pak with the mount point <code>../../../IntoTheRadius/Config/Tags/</code> and a file name nobody else uses. <a href="../../project/build-tags.ps1"><code>build-tags.ps1</code></a> does this for a level tag. An item tag has to be registered in game, or a saved item loads as nothing.</li>
+ <li>Add the item's row to a free slot's item tables, in the item's pak: <code>DT_ItemInfos_User&lt;n&gt;_VanillaScav</code>, <code>DT_ItemInfos_User&lt;n&gt;_ScavNoshop</code> and <code>DT_ItemInfos_Stalker_User&lt;n&gt;</code>, in <code>/Game/Mods/ModdedData/User&lt;n&gt;</code>.</li>
+ <li>Add a row with that tag to your map's base table. Or add it to the loot slot tables of that same slot number, in the item's pak, and it reaches stock zones as well as your composites.</li>
+</ol>
+<p>You can also put another mod's tag straight into your base table. The editor needs that tag in an ini too. I haven't tested what happens when that mod isn't installed.</p>
+<div class="unknown">Without Common Mod Dependencies I don't know a clean way to add an item. You'd have to replace <code>DT_ItemInfos</code>, and only one pak can win that file.</div>
+
+<h2>How itr-showcase does it</h2>
+<p>This map uses option C, with all three sets. It has 2407 loot nodes (<code>BP_RandomLoot</code>, <code>BP_Stash_Large</code>, <code>BP_Stash_Small</code> and <code>BP_Corpse</code>), and 2678 loot spawners in all. They're in the World Outliner under <code>&lt;Pocket&gt;/Gameplay/Loot</code>, <code>/Artifacts</code> and <code>/Stashes</code>.</p>
+<p>The generator's density model puts loot outside stashes at about 17 items per hectare, with about 3 of them edible. Stock zones have about 21 and about 3. Those are numbers from the data. I haven't counted them in game.</p>
+
+<h3>Tiers</h3>
+<div class="tablewrap"><table>
+ <tr><th>Tier</th><th>Pockets</th><th>Modelled on, and slots taken from</th></tr>
+ <tr><td>T1</td><td>P1</td><td>Buffer</td></tr>
+ <tr><td>T2</td><td>P2, P3</td><td>Construct</td></tr>
+ <tr><td>T3</td><td>P4 to P7</td><td>Factory</td></tr>
+ <tr><td>T4</td><td>P8 to P10</td><td>Kolhoz</td></tr>
+ <tr><td>T5</td><td>P11, P12, and some stashes in P8 to P10</td><td>Castle</td></tr>
+</table></div>
+<p>The manifest has 80 tags, and 53 have nodes on them. Open <code>Loot</code> and you'll see more tables than the map uses: <code>T25</code> and <code>G2</code> have no nodes.</p>
+
+<h3>A node</h3>
+<p>Select <code>P10_Loot_Ammo_001</code> in the Outliner:</p>
+<pre><code>Loot Table          Loot.ItrShowcase.T4.Ammo
+Loot Points         4
+Instance Id         ItrSC-R7-RandomLoot-801001
+Instance Id Prefix  ItrSC-R7-RandomLoot-</code></pre>
+<p><code>R7</code> is the seventh round of ids. When the tables change enough that a save should roll again, the number goes up.</p>
+<p>Others worth clicking: <code>P4_StashSmall_000</code> and <code>P3_Corpse_000</code>. <code>P9_StashExist_000</code> is a signature stash: its table's rows add up to the stash's 9 points, so it always gives the same things. There are ten signature tables, and the manifest's <code>story</code> field says what each is.</p>
+<p>For checking loot, there's a row of 13 stashes along the road south of the arrival checkpoint: <code>P1_OV_LootCheck2_Stash_*</code>.</p>
+
+<h3>The tag for the editor</h3>
+<p><code>project/Config/Tags/ItrShowcaseGameplayTags.ini</code> has a line per tag:</p>
+<pre><code>GameplayTagList=(Tag="Loot.ItrShowcase.T3.Stash.Grey",DevComment="ITR Showcase (generated by loot_tables.py)")</code></pre>
+<p>That ini is for the editor and it doesn't go in a pak. The tag pak holds only <code>Level.Zone.ItrShowcase</code>.</p>
+
+<h3>The manifest entry</h3>
+<p>From <a href="../../loader/ItrShowcaseLoader/Scripts/ItrShowcase.loot.json"><code>ItrShowcase.loot.json</code></a>, with a few note fields cut:</p>
+<pre><code>{
+ "tag": "Loot.ItrShowcase.T3.Stash.Grey",
+ "source_tag": "Loot.Factory.Stash.Grey",
+ "datatable": "DT_Loot_Factory_StashGrey",
+ "table_name": "DTC_Loot_ItrShowcase_T3_Stash_Grey_V",
+ "table_asset": "/Game/Mods/ItrShowcase/Loot/DTC_Loot_ItrShowcase_T3_Stash_Grey_V.DTC_Loot_ItrShowcase_T3_Stash_Grey_V",
+ "source_zone_budget": 72,
+ "scale": 5.7241,
+ "loot_points": 603,
+ "source_tag_points": 72,
+ "base_table": "DT_Loot_ItrShowcase_T3_Stash_Grey",
+ "base_rows": 43,
+ "table_variants": {
+  "V": "DTC_Loot_ItrShowcase_T3_Stash_Grey_V",
+  "SC": "DTC_Loot_ItrShowcase_T3_Stash_Grey_SC",
+  "ST": "DTC_Loot_ItrShowcase_T3_Stash_Grey_ST"
+ }
+}</code></pre>
+<p>The budget comes from the stock zone's budget for that kind of tag, scaled by area: <code>max(1, round(source_zone_budget * scale))</code>. T1 ammo is 76 * 3.3438 = 254. This one would be 412, but a tag's budget never goes below the points of the nodes on it, for every tag, and here that's 67 * 9 = 603. The same floor raised T1 ammo from 254 to 304. The rule is written out in the manifest's <code>budget_rule</code>, and the other fields the loader reads are <code>source_tag</code>, <code>loot_points</code>, <code>table_name</code>, <code>table_asset</code>, <code>table_variants</code>, <code>base_rows</code> and <code>source_tag_points</code>. The rest are notes.</p>
+
+<h3>The tables</h3>
+<p><code>project/Content/Mods/ItrShowcase/Loot</code> has 159 composites and 81 plain tables. 53 tags take slots, with three composites each, and each of those has a base table. The other 27 tags have one plain table each and take no slots, and that includes the artifact and edible tags and most of the signature stashes. <code>DT_Loot_ItrShowcase_T1P2_Artifact</code> isn't in the manifest, so ignore that one.</p>
+<p>The first rows of <code>DT_Loot_ItrShowcase_T3_Stash_Grey</code>:</p>
+<pre><code>Row      ItemTag                     LootPoints  Durability
+ItrSC_0  Item.Weapon.Primary.AK74    6           51 to 65
+ItrSC_1  Item.Weapon.Primary.AK74    6           51 to 65
+ItrSC_2  Item.Weapon.Primary.AK74    6           51 to 65
+ItrSC_3  Item.Weapon.Primary.AK      6           51 to 65</code></pre>
+<p>The repeated rows are the weighting. T3 ammo was 46 rows against 114 in the stock table, so its rows are repeated twice to make 92, which is the <code>base_rows</code> number.</p>
+<p>The parents of <code>DTC_Loot_ItrShowcase_T3_Stash_Grey_V</code>, in order:</p>
+<pre><code>/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Stash_Grey
+/Game/Mods/ModdedData/User0/LootTables/Vanilla/DT_Loot_Factory_StashGrey_V_User0
+/Game/Mods/ModdedData/User1/LootTables/Vanilla/DT_Loot_Factory_StashGrey_V_User1
+... up to User10</code></pre>
+<div class="warn">The stand-ins aren't in the repo, so in a fresh clone those parents can't load. To read the list, open the composite's <code>.uasset</code> in a text editor and search for <code>ModdedData</code>. I haven't tried saving a composite without the stand-ins. I'd expect it to lose the parents, so don't.</div>
+
+<h3>The loader</h3>
+<p>In <a href="../../loader/ItrShowcaseLoader/Scripts/config.lua"><code>config.lua</code></a>: <code>LootFrameworkSet</code>, <code>LootFrameworkMarkers</code> and <code>LootFollowBudgets</code>. In <a href="../../loader/ItrShowcaseLoader/Scripts/main.lua"><code>main.lua</code></a>:</p>
+<div class="tablewrap"><table>
+ <tr><th>Function</th><th>What it does</th></tr>
+ <tr><td><code>RegisterLootTags</code></td><td>At startup, before the main menu, adds each tag to <code>LootArray</code> with the budget scaled and the chosen set's table, loaded from its path in the manifest.</td></tr>
+ <tr><td><code>PickLootSet</code></td><td>Reads the folder of the stock tag's table and picks V, SC or ST.</td></tr>
+ <tr><td><code>KeepAssetsAlive</code></td><td>Appends the loaded tables to the game instance's <code>ReferencedObjects</code> array, so they stay loaded in the Hub, in the map and through tides.</td></tr>
+</table></div>
+<p>What the log looks like with the framework installed (<code>n</code> is the number of manifest tags):</p>
+<pre><code>loot: framework loot set V (donor Loot.Buffer.TrainStation.Ammo -> CompositeDataTable /Game/Mods/LootTables/Vanilla/DTC_Loot_Buffer_TrainStation_Ammo.DTC_Loot_Buffer_TrainStation_Ammo)
+loot: n loot table(s) of set V loaded at registration and kept alive in GameInstance.ReferencedObjects (array now ...) in ... ms
+loot: budgets follow the live game config: ratio 1.00 to 1.00 against the stock budgets (clamped 0.25..4)
+loot manifest registered: LootArray 89 -> ... entries (n added, 0 already present, 0 without donor, 0 failed, n custom tables)</code></pre>
+<p>The tables load in about 90 ms (measured with 68 tags).</p>
+
+<h3>Budgets and saves</h3>
+<p>The used points in a save are stored under the composite names, so the rolls come from the map's tables and the stock tables' budgets aren't touched. In the earlier build, with 68 tags, tags with plain tables (artifacts and signature stashes) ran out of budget before every node had rolled, so budgets did limit loot. Every tag's budget is now at least the points of the nodes on it. To get scarcity, lower a budget in the manifest.</p>
+<p>After the loader change I entered the map, went through three tides, left and came back, and used Continue. The saves had used points only under this map's table names, all the artifact nodes had rolled, and the 9 signature stashes were full. I haven't repeated that with the latest loot build.</p>
+<p>I've seen modded items in the map's stashes in VR, and a read of an earlier save showed modded magazines and consumables, including <code>Item.Weapon.Ammo.45ACP.FMJ</code>, a tag that isn't in the game's stock tag lists. What turns up depends on what each mod fills. One of the item mods I have installed has no Vanilla rows for Buffer's tables, so by itself it adds nothing to T1.</p>
+
+<h3>Things not tested</h3>
+<ul>
+ <li>The map without Common Mod Dependencies, since the composites went in.</li>
+ <li>The Scavenger and Stalker sets.</li>
+ <li>A row whose item isn't in the item table. There's one in the map's T5 equipment table, <code>Item.Misc.Dart</code>. The tag's registered, and I can't find it in the item table export.</li>
+</ul>
+
+<h2>Checklist</h2>
+<ul class="check">
+ <li>Your loot tags are in a <code>Config/Tags</code> ini, and the editor shows them in the <code>Loot Table</code> picker.</li>
+ <li>Every node has a tag, points and an id no other node has.</li>
+ <li>The manifest is in the loader's <code>Scripts</code> folder and named after the map's <code>Name</code>.</li>
+ <li><code>UE4SS.log</code> says <code>0 without donor, 0 failed</code>.</li>
+ <li>If you made tables: every <code>table_asset</code> in the manifest is a path in your pak, and the log's <code>custom tables</code> count equals the number of entries that name a table.</li>
+ <li>With slots: <code>UnrealPak -List</code> on your pak shows no <code>ModdedData</code> line.</li>
+ <li>With slots: your composites list your table first, then slots 0 to 10 of one stock table.</li>
+ <li>In game, items appear when you get near a node. After a change, you tested with new ids or a new save.</li>
+ <li>With an item mod installed, its items turn up in a node on a tag whose stock table that mod fills.</li>
+ <li>Save, quit, Continue: what you left in the node is still there, and picked-up modded items are still modded items.</li>
+</ul>
+
+</body>
+</html>

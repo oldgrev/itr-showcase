@@ -1,0 +1,23 @@
+/* Shared look for the map guide pages. One column, no scripts, prints fine. */
+body{background:#fbf9f4;color:#222;font:18px/1.55 "Segoe UI",sans-serif;max-width:820px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:1.9em;margin-bottom:.2em}
+h2{font-size:1.4em;margin-top:2em;border-bottom:2px solid #d9c9a3;padding-bottom:.2em}
+h3{font-size:1.1em;margin-top:1.5em}
+ol li,ul li{margin:6px 0}
+a{color:#22598a}
+.box{background:#eef6ee;border-left:5px solid #2f6f4f;padding:8px 14px;margin:16px 0;border-radius:6px}
+.warn{background:#fff1d6;border-left:5px solid #d08a00;padding:8px 14px;margin:16px 0;border-radius:6px}
+.unknown{background:#eef1f6;border-left:5px solid #56688a;padding:8px 14px;margin:16px 0;border-radius:6px}
+code{font-family:Consolas,monospace;background:#f0ead9;padding:1px 5px;border-radius:4px;font-size:.88em;overflow-wrap:anywhere}
+pre{background:#f0ead9;padding:10px 12px;border-radius:6px;overflow-x:auto;font-size:.8em;line-height:1.4}
+pre code{background:none;padding:0;font-size:1em;overflow-wrap:normal}
+figure{margin:16px 0;background:#fff;border:1px solid #e2d9c3;border-radius:10px;padding:10px;text-align:center}
+figcaption{font-size:.85em;color:#555;margin-top:6px}
+svg{max-width:100%;height:auto}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92em;margin:10px 0}
+td,th{border:1px solid #d8cfb8;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#f4eedf}
+.check{padding-left:0}
+.check li{list-style:none;padding-left:1.6em;text-indent:-1.6em}
+.check li::before{content:"\2610\00a0\00a0"}

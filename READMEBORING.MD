@@ -4,13 +4,14 @@
   closes the map (see "The edge of the map").
 - Twelve pockets (P1 to P12), each with a tier from T1 to T5 that sets its enemy roster and loot, difficulty rising from south to
   north: P1 Kordon, the entrance checkpoint on the south rim (T1); P2 Berezhok forest (T2); P3 Novostroy construction site and rail
-  yard (T2); P4 Tikhoe lake with a boathouse and a lamp isle (T3); P5 Dolina farm (T2); P6 dachas and a rail halt (T3); P7 bridges and
+  yard (T2); P4 Tikhoe lake with a boathouse and a lamp isle (T3); P5 Dolina farm (T3); P6 dachas and a rail halt (T3); P7 bridges and
   a fork on the valley floor (T3); P8 canyon and rail bridge (T4); P9 Zarechye town (T4); P10 haul road and a rift compound (T4); P11
   Khrebet ridge with a relay mast, an expedition camp and a cave network (T5); P12 Kariera quarry (T5). Roads, rail, a river and the
   lake link them.
-- About 22,000 static-mesh actors, about 1,700 gameplay actors, and about 140,000 foliage and merged-mesh instances in HISM
-  groups.
-- Buildings (268, 9,113 stock pieces) copy the furniture and fittings of the stock building each is modelled on, at the stock positions, and sit at
+- About 9,200 static-mesh actors (counted in the cooked level before the latest loot build; repeated plain dressing is merged
+  into instanced meshes), plus the foliage and merged-mesh instances in HISM groups. The placements hold 2407 loot nodes and
+  732 enemy spawners.
+- Buildings copy the furniture and fittings of the stock building each is modelled on, at the stock positions, and are placed at
   the stock depth in the ground with the terrain fitted to them. Dolina farm's big buildings copy the stock Pobeda buildings.
   Lamps in interiors are placed as their meshes (their light is kept).
 - Placed at world (-34500, -364000, 0) cm. The map is registered as a separate level, so the Hub's level radius does not apply;
@@ -28,10 +29,10 @@ The map ends in a square fog wall about 1.25 km from the centre, so there is no 
 - `BP_ItrShowcase_PerimeterTide` (`Content/Mods/ItrShowcase/Blueprints`): a child of the game's `BP_TideBase`. It has four trigger
   strips along a square (about 1247 m from the centre) instead of a test against the stock circle. Walking into one calls the stock
   `DoTransition`: the player is moved to one of the respawn points and the level is re-entered through the game's transition. It does
-  no work until the player enters a strip.
+  only acts when the player enters a strip.
 - `ItrShowcase_StockTide` (the stock `BP_Tide`) has its circle set to 2300 m, so the shared bunker outside the square is inside it. Outside
   that circle the stock tide reloads the level.
-- Seven `BP_SpawnSpline` actors inside the nav volumes are the respawn points (`PlayerSpawn`).
+- Eight `BP_SpawnSpline` actors inside the nav volumes are the respawn points (`PlayerSpawn`).
 - Twelve `FogWall_*` plane actors (four sides, three layers: fog, masked fog and an opaque backstop) with the game's fog materials
   (`FogMaterial_Inst`, `MI_FogMaterial_Masked`), up to 180 m high.
 - The backdrop landscape and the trees and foliage past the edge of the main landscape were removed, so nothing outside the wall
@@ -46,26 +47,27 @@ select one to see how it is configured.
 
 | System | Class | Where | How it's set up |
 |---|---|---|---|
-| Enemy squads | `BP_MonsterSpawner` (about 600, roaming and static together) | `<Pocket>/Gameplay/Spawners` | `Monsters` is a map of NPC tag to count (for example `NPC.Monster.Mimic.PM`: 1, `NPC.Monster.Fragment`: 2), `Radius` is the spawn scatter (roughly 10 to 55 m for roaming squads), `AlternativeMonstersMax` 1 to 4, `CanWalkAway`, `SnipingMode` for marksmen. Each has a stable `SpawnerInstanceID` of the form `L_ItrShowcase>P1_P1_KPP_E1_b0`, which is the key the game's save uses. The roster gets harder from tier 1 (Spider, Fragment, Mimic PM) through Seekers and armed Mimics (sawn-off shotgun, MP5, SVD) to armoured Seekers, Fragments and Mimics (AKSu, AKM, Val) and a few Sliders in tiers 4 and 5. |
+| Enemy squads | `BP_MonsterSpawner` (732, roaming and static together) | `<Pocket>/Gameplay/Spawners` | `Monsters` is a map of NPC tag to count (for example `NPC.Monster.Mimic.PM`: 1, `NPC.Monster.Fragment`: 2), `Radius` is the spawn scatter (roughly 10 to 55 m for roaming squads), `AlternativeMonstersMax` 1 to 4, `CanWalkAway`, `SnipingMode` for marksmen. Each has a stable `SpawnerInstanceID` of the form `L_ItrShowcase>P1_P1_KPP_E1_b0`, which is the key the game's save uses. The roster gets harder from tier 1 (Spider, Fragment, Mimic PM) through Seekers and armed Mimics (sawn-off shotgun, MP5, SVD) to armoured Seekers, Fragments and Mimics (AKSu, AKM, Val) and a few Sliders in tiers 4 and 5. |
 | Static NPCs | the same `BP_MonsterSpawner` | `<Pocket>/Gameplay/Static` | One monster, `CanWalkAway` off, a `Radius` of a few metres at most, so the NPC stands where you placed it: guards, a man in an attic. Snipers also set `SnipingMode`. |
-| Rifts | `BP_MonsterSpawnGenerator` (12) | `<Pocket>/Gameplay/Rifts` | The visible, shootable source of enemies. `generatorID` is a custom tag (`NPC.Generator.ItrShowcase.A0_1`), `Spawners` lists the spawners it drives, `CooldownSeconds` 150. The tags are registered in the project's gameplay tags. |
-| Loot | `BP_RandomLoot` (about 500) | `<Pocket>/Gameplay/Loot` | `LootTable` is a custom tag (`Loot.ItrShowcase.T1.Ammo`), `LootPoints` is the node's share of the tag's budget, `InstanceID`/`InstanceIDPrefix` are set so the save can key them. Tags are per tier and category: Ammo, Equipment, FoodBaseItem, plus stashes. |
-| Artifacts | `BP_RandomLoot` (about 190 of the 500, one point each) | `<Pocket>/Gameplay/Artifacts` | Loot nodes next to the anomalies, on the per-tier `Loot.ItrShowcase.<tier>.Artifact` tags. |
-| Stashes and corpses | `BP_Stash_Small`, `BP_Stash_Large` (about 330 together), `BP_Corpse` (2) | `<Pocket>/Gameplay/Stashes` | Same `LootTable` mechanism with the `Stash.Red`, `Stash.Grey`, `Stash.Valuables` and `Stash.Deadmans` tags, plus ten signature stashes. Stashes are placed out of sight rather than in the open. |
+| Rifts | `BP_MonsterSpawnGenerator` (33) | `<Pocket>/Gameplay/Rifts` | The visible, shootable source of enemies. `generatorID` is a custom tag (`NPC.Generator.ItrShowcase.A0_1`), `Spawners` lists the spawners it drives, `CooldownSeconds` 150. The tags are registered in the project's gameplay tags. |
+| Loot | `BP_RandomLoot` (2049; 2407 loot nodes with the stashes and corpses, 2678 loot spawners with the furniture loot) | `<Pocket>/Gameplay/Loot` | `LootTable` is a custom tag (`Loot.ItrShowcase.T1.Ammo`), `LootPoints` is the node's share of the tag's budget, `InstanceID`/`InstanceIDPrefix` are set so the save can key them. Tags are per tier and category: Ammo, Equipment, FoodBaseItem, Edible and Furniture, plus stashes. |
+| Artifacts | `BP_RandomLoot` (one point each) | `<Pocket>/Gameplay/Artifacts` | Loot nodes next to the anomalies, on the per-tier `Loot.ItrShowcase.<tier>.Artifact` tags. |
+| Stashes and corpses | `BP_Stash_Small`, `BP_Stash_Large` (356 together), `BP_Corpse` (2) | `<Pocket>/Gameplay/Stashes` | Same `LootTable` mechanism with the `Stash.Red`, `Stash.Grey`, `Stash.Valuables` and `Stash.Deadmans` tags, plus ten signature stashes. Stashes are placed out of sight rather than in the open. |
 | Anomalies | `BP_Anomaly_Gas`, `_Grass`, `_Web`, `_Distortion`, `_Lightning` (about 270) | `<Pocket>/Gameplay/Anomalies` | One actor each, no property overrides. The game's anomaly clusters are driven by map-point data registered per level, so as far as I know they don't work in a custom map; this map uses single anomalies. |
 | Mission points | `BP_ItrShowcase_MissionPoint` (20) | the pockets | Objective points of the showcase missions. The loader registers each point's tag and position with the game's map-point configuration. |
 | AI cover | `ItrShowcase_CoverLoader`, a child of the game's `ACoverLoader` (`Content/Mods/ItrShowcase/Blueprints/BP_ItrShowcase_CoverLoader`) | persistent level | One actor holding the cover and shooting-position arrays (plain world-space `FVector`s, the same data the zone levels carry) with the zone's `CoverSettings`. |
 | Navmesh | `NavMeshBoundsVolume` (12) | `Nav` | Volumes around the gameplay footprints, not the whole map, baked for the game's two agents (Default and Big). |
 | Teleports | `TargetPoint`s tagged `itr:tp:<group>/<name>` | `Teleports/<group>` | Standing-height points on walkable ground (dry, not on a steep slope). The game ignores the tag; it is a label that tools such as a teleport menu can list. |
-| Exits and arrivals | `TargetPoint`s tagged `itr:player_start`, `itr:exit` + `itr:exit_id:R<n>`, `itr:arrive:R<n>` | `Returns/R0` | Read by the loader. Walking onto an exit marker takes you back to the Hub; the next entry puts you at the matching arrive marker. The map has one, R0, the entrance at P1. The loader supports any number; the generator can place more. |
+| Exits and arrivals | `TargetPoint`s tagged `itr:player_start`, `itr:exit` + `itr:exit_id:R<n>`, `itr:arrive:R<n>` | `Returns/R0` | Read by the loader. Walking onto an exit marker returns you to the Hub; you arrive at the matching arrive marker the next time you enter. The map has one, R0, the entrance at P1. The loader supports any number; the generator can place more. |
 | Return pad | a flat disc and a light beam (static meshes) | `Returns/R0` | The visible part of the exit: stand on the pad and the loader's exit marker on it sends you to the Hub. |
-| Bunker airlocks | `BP_ItrShowcase_Airlock` (five: `B1_Airlock` to `B4_Airlock` and `S_Airlock`) | the cellar landings | The landing's `Trigger` box starts the fade (`StartCameraFade`) and moves the player to the matching landing, keeping the pose. The site's id goes in the save marker `ItrShowcase:shared:from:<id>`, which picks the exit. `S_Airlock` also has a `Shelter` box around the bunker: entering it hides the sun and sky light, leaving it shows them, so loading a save inside works too. There's no polling. |
+| Bunker airlocks | `BP_ItrShowcase_Airlock` (five: `B1_Airlock` to `B4_Airlock` and `S_Airlock`) | the cellar landings | The landing's `Trigger` box starts the fade (`StartCameraFade`) and moves the player to the matching landing, keeping the pose. The site's id goes in the save marker `ItrShowcase:shared:from:<id>`, which picks the exit. `S_Airlock` also has a `Shelter` box around the bunker: entering it hides the sun and sky light, leaving it shows them, so loading a save inside works too. All of it runs on overlap events. |
 | Bunker trigger boxes | the `Trigger`, `Exit` and `Shelter` boxes, and the tide strips | on those actors | Object type `Trigger`, Pawn set to Overlap, everything else Ignore. The object type matters: the player's collision ignores WorldDynamic, so a box with the usual `OverlapAllDynamic` object type never fires for the player. |
-| Bunker door | `BP_ItrShowcase_BunkerDoor` | the shared bunker | Grabbing it sets the save marker `ItrShowcase:return:S` and transfers to the Hub. The loader's `NativeBunkerReturns` row `S` uses that marker to arrive by the door on the next entry. |
+| Bunker door | `BP_ItrShowcase_BunkerDoor` | the shared bunker | Grabbing it sets the save marker `ItrShowcase:return:S` and transfers to the Hub. The loader's `NativeBunkerReturns` row `S` uses that marker to arrive by the door the next time you enter. |
 | Bunker services | stock health booth, storage, mission computer, shop, bed and vise | the shared bunker | The stock UI binds the first health booth, storage and mission computer it finds, so a map can only have one health booth, one storage and one mission computer. |
 | Fog perimeter | `BP_ItrShowcase_PerimeterTide`, `BP_SpawnSpline`, `FogWall_*` | `Global/Perimeter` | See "The edge of the map". |
 | Map board and tablet map | a two-sided map sign (a `StaticMeshActor` tagged `itr:mapboard`) carrying the material instance `MI_ItrShowcase_Map` | at the entrance | The picture on the sign is also what the hip tablet shows while you are in the map: the loader points the map's level row at the sign's material, and adds one `LevelGates` row per return pad (one, R0) so the pad shows as a marker. |
 | Runtime settings | `BP_ItrShowcase_MapSettings`, `BP_ItrShowcase_CompassSky`, `BP_ItrShowcase_Progression` | persistent level | Blueprint actors that do what a loader would otherwise do every tick: `MapSettings` sets `r.ViewDistanceScale 6` and `foliage.LODDistanceScale 6` in BeginPlay and restores the earlier values in EndPlay, `CompassSky` sets the compass target, `Progression` sets the player level and the trigger flags of the progression unlock. |
+| Region progress | `BP_ItrShowcase_RegionDirector` (1) | persistent level | Counts enemy deaths per pocket, in all 12 pockets, and a pocket counts as cleared at 90 %. The enemies fed by a rift are credited once the rift is destroyed. The director reads its totals from the level at BeginPlay, from each spawner's `Monsters` and each rift's `Spawners`. How many of the defined enemies have to die follows the enemy-count setting; the percentages used for that are tuning values, and I haven't measured them in game. |
 
 ### Loot setup
 This is the part most map makers will want to copy.
@@ -80,19 +82,22 @@ So it's a tad overconfident to say 'map makers will want to copy' and then not c
 It's not mind blowing, but it's something I haven't seen done in ITR yet.
 ```
 - The game's loot budgets are global and save-wide per tag, so a 2.5 km map reusing the vanilla zone tags would be sparse.
-  The map therefore has **68 custom loot tags** (`Loot.ItrShowcase.<tier>.<category>`): five tiers T1 to T5 (getting better to
+  The map therefore has **80 custom loot tags** (`Loot.ItrShowcase.<tier>.<category>`): five tiers T1 to T5 (getting better to
   the north, one per pocket tier), each with a budget scaled from the vanilla zone it is modelled on by area, plus ten signature
   stash tags and a small example set (`G2`). The manifest also lists an intermediate tier `T25` that the current layout does not
-  use. The manifest is `loader/ItrShowcaseLoader/Scripts/ItrShowcase.loot.json`; it records the tag, the donor tag, the table and
-  the budget.
-- Each tag has a `DataTable` (`Content/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_*`), with rows cloned from the donor
-  zone's table, so used loot points are not shared with the vanilla zones.
+  use. A tag's budget is never below the points of the nodes placed on it, for every tag. The manifest is
+  `loader/ItrShowcaseLoader/Scripts/ItrShowcase.loot.json`; it records the tag, the donor tag, the table and the budget.
+- Each tag has a base `DataTable` (`Content/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_*`) with rows from the generator's tier
+  recipes, so used loot points are not shared with the vanilla zones. 53 of the tags also have three composite tables each
+  (`DTC_Loot_ItrShowcase_*_V`, `_SC`, `_ST`): the base table plus the 11 `ModdedData` user slot tables of the matching stock
+  table, which is how items from Common Mod Dependencies reach the map. The guide's loot page has the details.
 - Nothing in the map registers these tags with the game, so the loader does it at startup: it adds each tag to the game
-  config's `LootArray` (`TMap` of tag to `FPRLootTableConfig`) on the stock donor tables, which never unload. See "Loot" in
-  [`itr-common`'s loader README](../itr-common/loader-ue4ss/README.md).
-- The map's tables must stay loaded while you are in it, or the game reads a freed table. `BP_ItrShowcase_LootTables` is a
-  placed actor whose `Tables` array holds a hard reference to every ItrShowcase table, so they load and unload with the level. Once
-  the level is loaded the loader points the entries at those tables, and back at the donor tables when the level goes.
+  config's `LootArray` (`TMap` of tag to `FPRLootTableConfig`) with the budget and the chosen set's table. The donor tables are
+  the fallback if a table can't be loaded. See "Loot" in [`itr-common`'s loader README](../itr-common/loader-ue4ss/README.md).
+- The map's tables must stay loaded, or the game reads a freed table. At startup (the main menu) the loader loads the chosen
+  set's tables and appends them to `GameInstance.ReferencedObjects`, an array the garbage collector reads, so they stay loaded in
+  the Hub, in the map and through tides. The loader doesn't re-point the entries afterwards. It has to be this early because the
+  game rolls the loot nodes before any game-mode event the loader could hook.
 - Generator ids follow the same idea: `NPC.Generator.ItrShowcase.<area>_<n>` (the area part is `A0` to `A9`, a numbering the
   generator still uses for the rifts).
 
@@ -102,7 +107,8 @@ transfer (`TransferToLevel`), so the transition, the unload of the Hub, the prep
 run as they do for a stock zone. What it does, at startup, before the main menu:
 - adds a streaming entry for `L_ItrShowcase` (`LevelStreaming::CreateInstance`) and a level row to the system config's
   `LevelConfigurations`, copied from the Buffer zone (time, inventory, sleep, saves, map scale; radius 2.5 km);
-- adds the map centre and one level-gate row per return pad (one, R0) to the map-point config, and registers the loot tags (above);
+- adds the map centre and one level-gate row per return pad (one, R0) to the map-point config, and registers the loot tags and
+  loads their tables (above);
 - once the game is idle, registers the showcase missions (see "Showcase missions and uninstalling").
 
 Entering and leaving are triggers on top of that (`loader/ItrShowcaseLoader/Scripts/config.lua`): the tin of graphite grease, `F9`, the
@@ -121,7 +127,7 @@ saved position.
   `GameplayTagList=(Tag="Level.Zone.ItrShowcase",DevComment="...")`. It registers only the level tag.
 - The file name has to be unique. A pak file at the same path as a game file replaces it, so reusing the name of the stock level
   tag list (`LevelGameplayTags.ini`) would unregister every stock level.
-- It is a separate pak because a Config file changes a pak's mount point, and the map pak stays mounted at
+- It is a separate pak because a Config file changes a pak's mount point, and the map pak is mounted at
   `../../../IntoTheRadius/Content/Mods/ItrShowcase/`.
 - `project/build-tags.ps1` builds it. It reads the tag from `NativeTag` in the loader's `config.lua`, and `project/build-map.ps1`
   runs it after packing the map.
@@ -136,7 +142,7 @@ You can open `project/IntoTheRadius.uproject` to inspect the level, the Blueprin
   properties, functions, flags, native defaults; function bodies are empty). Copy the community SDK's `VRExpansionPlugin`
   and `ModFramework` plugins into `project/Plugins/`. Compile it the first time you open the project (Visual Studio with
   the C++ game workload).
-  The game's real module is in the game; none of this goes into the pak. The editor plugin,
+  The game's real module is in the game; none of it goes into the pak. The editor plugin,
   `Plugins/ItrShowcaseEditor` (builds the map's Blueprints from JSON specs), is included and optional.
 - **Game config.** `Config/DefaultEngine.ini` is the game's file and is not in the repo. Extract it once:
   `project\extract-game-config.ps1 -Engine "<your editor>\Engine"`.

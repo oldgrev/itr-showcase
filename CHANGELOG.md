@@ -7,19 +7,30 @@ Status of every release: early test with issues (see "Status" in the README).
 Not in an archive yet. Changes since the 2026-10-29 build.
 
 ### Loot
-- **Items from using Common Mod Dependencies are automatically used by stashes and as individual loot spawns.** 47 of the map's loot tags (all tiers' ammo, equipment,
-  food, valuables, stash and dead-man tables) are now composite tables: the map's tier rows plus the dependencies' 11 `ModdedData`
+- **Items from using Common Mod Dependencies are automatically used by stashes and as individual loot spawns.** Most of the map's loot tags (53 of 80: the tiers' ammo, equipment,
+  food, furniture, valuables, stash and dead-man tables) are now composite tables: the map's tier rows plus the dependencies' 11 `ModdedData`
   user slot tables of the matching stock table. The loader picks the Vanilla, Scavenger or Stalker slot set from the game config and logs it
-  (`loot: framework loot set ...`, then `loot: N framework rows in M of 47 tables`), and scales each tag's budget once by the live stock
+  (`loot: framework loot set ...`), and scales each tag's budget once by the live stock
   budget (clamped 0.25 to 4). `LootFrameworkSet`, `LootFrameworkMarkers` and `LootFollowBudgets` are in `config.lua`.
   The map pak has no files at the `ModdedData` paths. The Unreal project only has empty stand-ins of them, and those aren't in the repo.
+- **Far more loot placed.** 2407 loot nodes (2678 loot spawners with the furniture loot), including loose items, edible finds and
+  furniture loot. Edible and Furniture have tags per tier, which is why the manifest has 80 tags.
+- **Every tag's budget is at least the points of the nodes on it.** Before, only stash tags had that floor, and tags with plain
+  tables could run out before every node had rolled.
+- **The loader loads the map's loot tables once, when the game starts,** and keeps them loaded. It no longer re-points them when
+  the map loads and unloads. Before, nodes could roll on the stock tables after a tide, a fog return or a death reload. Saves after
+  entering, three tides, leaving and coming back, and Continue show only this map's tables.
 - **Five or so large stashes for checking loot** on the road just south of the arrival checkpoint, one per loot tier T1 to T5, going south.
+
+### Region progress
+- **Enemy deaths are counted per pocket,** in all 12 pockets. A pocket counts as cleared at 90 %. The enemies fed by a rift are credited
+  once the rift is destroyed. The numbers I used for how many of the defined enemies have to die are tuning values, not measured in game.
 
 ### Saving
 - **Saves made in the map now load back into it,** and items you left on the ground are still there. It needs a new small pak,
   `zzz_ITRMap_ItrShowcase_Tags_P.pak`, next to the map pak in `~mods`. It's in both archives. Install and remove the two together.
-- The loader logs at startup whether the tag is registered, switches to the map's loot tables when a save loads into the map, and
-  moves you to the arrival marker if the save puts you outside the map.
+- The loader logs at startup whether the tag is registered, and moves you to the arrival marker if the save puts you outside
+  the map.
 
 ### Exits
 - **One return pad,** R0 at the Kordon entrance. R1 to R6 and their cyan "to entrance" pads are gone. The flattened ground they

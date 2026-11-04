@@ -87,7 +87,7 @@
    "source_zone_budget": 76,
    "source_area_tags": 3,
    "scale": 3.3438,
-   "loot_points": 254,
+   "loot_points": 304,
    "source_tag_points": 32,
    "base_table": "DT_Loot_ItrShowcase_T1_Ammo",
    "base_rows": 31,
@@ -236,6 +236,45 @@
    }
   },
   {
+   "tag": "Loot.ItrShowcase.T1.Furniture",
+   "tier": "T1",
+   "category": "Furniture",
+   "node_class": "Prefab_Furniture (furniture loot)",
+   "source_tag": "Loot.Buffer.TrainStation.Furniture",
+   "datatable": "DT_Loot_Buffer_TrainStation_Furniture",
+   "table_name": "DTC_Loot_ItrShowcase_T1_Furniture_V",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DTC_Loot_ItrShowcase_T1_Furniture_V.DTC_Loot_ItrShowcase_T1_Furniture_V",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Furniture.DT_Loot_ItrShowcase_T1_Furniture",
+   "source_zone_budget": 84,
+   "source_area_tags": 2,
+   "scale": 3.3438,
+   "loot_points": 281,
+   "source_tag_points": 42,
+   "base_table": "DT_Loot_ItrShowcase_T1_Furniture",
+   "base_rows": 46,
+   "table_variants": {
+    "V": "DTC_Loot_ItrShowcase_T1_Furniture_V",
+    "SC": "DTC_Loot_ItrShowcase_T1_Furniture_SC",
+    "ST": "DTC_Loot_ItrShowcase_T1_Furniture_ST"
+   }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T1.Edible",
+   "tier": "T1",
+   "category": "Edible",
+   "node_class": "BP_RandomLoot (edible finds)",
+   "source_tag": "Loot.Buffer.TrainStation.FoodBaseItem",
+   "datatable": "DT_Loot_Buffer_TrainStation_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T1_Edible",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Edible.DT_Loot_ItrShowcase_T1_Edible",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T1_Edible.DT_Loot_ItrShowcase_T1_Edible",
+   "source_zone_budget": 12,
+   "source_area_tags": 1,
+   "scale": 3.3438,
+   "loot_points": 24,
+   "source_tag_points": 12
+  },
+  {
    "tag": "Loot.ItrShowcase.T2.Ammo",
    "tier": "T2",
    "category": "Ammo",
@@ -248,7 +287,7 @@
    "source_zone_budget": 52,
    "source_area_tags": 3,
    "scale": 9.2063,
-   "loot_points": 479,
+   "loot_points": 608,
    "source_tag_points": 20,
    "base_table": "DT_Loot_ItrShowcase_T2_Ammo",
    "base_rows": 35,
@@ -418,6 +457,45 @@
     "SC": "DTC_Loot_ItrShowcase_T2_Stash_Deadmans_SC",
     "ST": "DTC_Loot_ItrShowcase_T2_Stash_Deadmans_ST"
    }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T2.Furniture",
+   "tier": "T2",
+   "category": "Furniture",
+   "node_class": "Prefab_Furniture (furniture loot)",
+   "source_tag": "Loot.Construct.Village.Furniture",
+   "datatable": "DT_Loot_Construct_Village_Furniture",
+   "table_name": "DTC_Loot_ItrShowcase_T2_Furniture_V",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DTC_Loot_ItrShowcase_T2_Furniture_V.DTC_Loot_ItrShowcase_T2_Furniture_V",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Furniture.DT_Loot_ItrShowcase_T2_Furniture",
+   "source_zone_budget": 36,
+   "source_area_tags": 1,
+   "scale": 9.2063,
+   "loot_points": 331,
+   "source_tag_points": 36,
+   "base_table": "DT_Loot_ItrShowcase_T2_Furniture",
+   "base_rows": 50,
+   "table_variants": {
+    "V": "DTC_Loot_ItrShowcase_T2_Furniture_V",
+    "SC": "DTC_Loot_ItrShowcase_T2_Furniture_SC",
+    "ST": "DTC_Loot_ItrShowcase_T2_Furniture_ST"
+   }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T2.Edible",
+   "tier": "T2",
+   "category": "Edible",
+   "node_class": "BP_RandomLoot (edible finds)",
+   "source_tag": "Loot.Construct.Building.FoodBaseItem",
+   "datatable": "DT_Loot_Construct_Building_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T2_Edible",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Edible.DT_Loot_ItrShowcase_T2_Edible",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T2_Edible.DT_Loot_ItrShowcase_T2_Edible",
+   "source_zone_budget": 6,
+   "source_area_tags": 1,
+   "scale": 9.2063,
+   "loot_points": 62,
+   "source_tag_points": 6
   },
   {
    "tag": "Loot.ItrShowcase.T25.Ammo",
@@ -604,6 +682,45 @@
    }
   },
   {
+   "tag": "Loot.ItrShowcase.T25.Furniture",
+   "tier": "T25",
+   "category": "Furniture",
+   "node_class": "Prefab_Furniture (furniture loot)",
+   "source_tag": "Loot.Kolhoz.Greenhouses.Furniture",
+   "datatable": "DT_Loot_Kolhoz_Greenhouses_Furniture",
+   "table_name": "DTC_Loot_ItrShowcase_T25_Furniture_V",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DTC_Loot_ItrShowcase_T25_Furniture_V.DTC_Loot_ItrShowcase_T25_Furniture_V",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T25_Furniture.DT_Loot_ItrShowcase_T25_Furniture",
+   "source_zone_budget": 30,
+   "source_area_tags": 3,
+   "scale": 0.9565,
+   "loot_points": 29,
+   "source_tag_points": 15,
+   "base_table": "DT_Loot_ItrShowcase_T25_Furniture",
+   "base_rows": 79,
+   "table_variants": {
+    "V": "DTC_Loot_ItrShowcase_T25_Furniture_V",
+    "SC": "DTC_Loot_ItrShowcase_T25_Furniture_SC",
+    "ST": "DTC_Loot_ItrShowcase_T25_Furniture_ST"
+   }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T25.Edible",
+   "tier": "T25",
+   "category": "Edible",
+   "node_class": "BP_RandomLoot (edible finds)",
+   "source_tag": "Loot.Kolhoz.Village.FoodBaseItem",
+   "datatable": "DT_Loot_Kolhoz_Village_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T25_Edible",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T25_Edible.DT_Loot_ItrShowcase_T25_Edible",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T25_Edible.DT_Loot_ItrShowcase_T25_Edible",
+   "source_zone_budget": 20,
+   "source_area_tags": 1,
+   "scale": 0.9565,
+   "loot_points": 0,
+   "source_tag_points": 20
+  },
+  {
    "tag": "Loot.ItrShowcase.T3.Ammo",
    "tier": "T3",
    "category": "Ammo",
@@ -616,7 +733,7 @@
    "source_zone_budget": 169,
    "source_area_tags": 4,
    "scale": 5.7241,
-   "loot_points": 967,
+   "loot_points": 1036,
    "source_tag_points": 40,
    "base_table": "DT_Loot_ItrShowcase_T3_Ammo",
    "base_rows": 92,
@@ -786,6 +903,45 @@
     "SC": "DTC_Loot_ItrShowcase_T3_Stash_Deadmans_SC",
     "ST": "DTC_Loot_ItrShowcase_T3_Stash_Deadmans_ST"
    }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T3.Furniture",
+   "tier": "T3",
+   "category": "Furniture",
+   "node_class": "Prefab_Furniture (furniture loot)",
+   "source_tag": "Loot.Factory.Quarry.Furniture",
+   "datatable": "DT_Loot_Factory_Quarry_Furniture",
+   "table_name": "DTC_Loot_ItrShowcase_T3_Furniture_V",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DTC_Loot_ItrShowcase_T3_Furniture_V.DTC_Loot_ItrShowcase_T3_Furniture_V",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Furniture.DT_Loot_ItrShowcase_T3_Furniture",
+   "source_zone_budget": 90,
+   "source_area_tags": 4,
+   "scale": 5.7241,
+   "loot_points": 515,
+   "source_tag_points": 15,
+   "base_table": "DT_Loot_ItrShowcase_T3_Furniture",
+   "base_rows": 74,
+   "table_variants": {
+    "V": "DTC_Loot_ItrShowcase_T3_Furniture_V",
+    "SC": "DTC_Loot_ItrShowcase_T3_Furniture_SC",
+    "ST": "DTC_Loot_ItrShowcase_T3_Furniture_ST"
+   }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T3.Edible",
+   "tier": "T3",
+   "category": "Edible",
+   "node_class": "BP_RandomLoot (edible finds)",
+   "source_tag": "Loot.Factory.Quarry.FoodBaseItem",
+   "datatable": "DT_Loot_Factory_Quarry_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T3_Edible",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Edible.DT_Loot_ItrShowcase_T3_Edible",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T3_Edible.DT_Loot_ItrShowcase_T3_Edible",
+   "source_zone_budget": 16,
+   "source_area_tags": 1,
+   "scale": 5.7241,
+   "loot_points": 140,
+   "source_tag_points": 16
   },
   {
    "tag": "Loot.ItrShowcase.T4.Ammo",
@@ -972,6 +1128,45 @@
    }
   },
   {
+   "tag": "Loot.ItrShowcase.T4.Furniture",
+   "tier": "T4",
+   "category": "Furniture",
+   "node_class": "Prefab_Furniture (furniture loot)",
+   "source_tag": "Loot.Kolhoz.Greenhouses.Furniture",
+   "datatable": "DT_Loot_Kolhoz_Greenhouses_Furniture",
+   "table_name": "DTC_Loot_ItrShowcase_T4_Furniture_V",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DTC_Loot_ItrShowcase_T4_Furniture_V.DTC_Loot_ItrShowcase_T4_Furniture_V",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Furniture.DT_Loot_ItrShowcase_T4_Furniture",
+   "source_zone_budget": 30,
+   "source_area_tags": 3,
+   "scale": 7.8565,
+   "loot_points": 390,
+   "source_tag_points": 15,
+   "base_table": "DT_Loot_ItrShowcase_T4_Furniture",
+   "base_rows": 79,
+   "table_variants": {
+    "V": "DTC_Loot_ItrShowcase_T4_Furniture_V",
+    "SC": "DTC_Loot_ItrShowcase_T4_Furniture_SC",
+    "ST": "DTC_Loot_ItrShowcase_T4_Furniture_ST"
+   }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T4.Edible",
+   "tier": "T4",
+   "category": "Edible",
+   "node_class": "BP_RandomLoot (edible finds)",
+   "source_tag": "Loot.Kolhoz.Village.FoodBaseItem",
+   "datatable": "DT_Loot_Kolhoz_Village_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T4_Edible",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Edible.DT_Loot_ItrShowcase_T4_Edible",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T4_Edible.DT_Loot_ItrShowcase_T4_Edible",
+   "source_zone_budget": 20,
+   "source_area_tags": 1,
+   "scale": 7.8565,
+   "loot_points": 88,
+   "source_tag_points": 20
+  },
+  {
    "tag": "Loot.ItrShowcase.T5.Ammo",
    "tier": "T5",
    "category": "Ammo",
@@ -1154,6 +1349,45 @@
     "SC": "DTC_Loot_ItrShowcase_T5_Stash_Deadmans_SC",
     "ST": "DTC_Loot_ItrShowcase_T5_Stash_Deadmans_ST"
    }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Furniture",
+   "tier": "T5",
+   "category": "Furniture",
+   "node_class": "Prefab_Furniture (furniture loot)",
+   "source_tag": "Loot.Castle.Coast.Furniture",
+   "datatable": "DT_Loot_Castle_Coast_Furniture",
+   "table_name": "DTC_Loot_ItrShowcase_T5_Furniture_V",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DTC_Loot_ItrShowcase_T5_Furniture_V.DTC_Loot_ItrShowcase_T5_Furniture_V",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Furniture.DT_Loot_ItrShowcase_T5_Furniture",
+   "source_zone_budget": 25,
+   "source_area_tags": 1,
+   "scale": 7.21,
+   "loot_points": 180,
+   "source_tag_points": 25,
+   "base_table": "DT_Loot_ItrShowcase_T5_Furniture",
+   "base_rows": 79,
+   "table_variants": {
+    "V": "DTC_Loot_ItrShowcase_T5_Furniture_V",
+    "SC": "DTC_Loot_ItrShowcase_T5_Furniture_SC",
+    "ST": "DTC_Loot_ItrShowcase_T5_Furniture_ST"
+   }
+  },
+  {
+   "tag": "Loot.ItrShowcase.T5.Edible",
+   "tier": "T5",
+   "category": "Edible",
+   "node_class": "BP_RandomLoot (edible finds)",
+   "source_tag": "Loot.Castle.Coast.FoodBaseItem",
+   "datatable": "DT_Loot_Castle_Coast_FoodBaseItems",
+   "table_name": "DT_Loot_ItrShowcase_T5_Edible",
+   "table_asset": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Edible.DT_Loot_ItrShowcase_T5_Edible",
+   "table_asset_own": "/Game/Mods/ItrShowcase/Loot/DT_Loot_ItrShowcase_T5_Edible.DT_Loot_ItrShowcase_T5_Edible",
+   "source_zone_budget": 17,
+   "source_area_tags": 1,
+   "scale": 7.21,
+   "loot_points": 86,
+   "source_tag_points": 17
   },
   {
    "tag": "Loot.ItrShowcase.T1.Artifact",

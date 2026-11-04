@@ -35,8 +35,8 @@ I have a playlist of all the unlisted progress videos I've been keeping that [de
 ## What's in the box
 | Folder / file | What |
 |---|---|
-| `project/` | The Unreal 4.27 project. It has to be called `IntoTheRadius.uproject`. The map is in `Content/Mods/ItrShowcase/`: `L_ItrShowcase.umap` (the level, stored with Git LFS), the landscape layers and material, sky and marker materials, about 70 loot `DataTable`s, the mission data assets (`Missions/`) and the generated Blueprints. |
-| `project/Plugins/ItrShowcaseEditor` | An optional editor plugin that builds the map's Blueprints (teleport pad, light event, light follower, loot-table holder, the perimeter tide, an event director, the map settings, compass and progression actors) from JSON specs. You don't need it to open the map or to make your own. |
+| `project/` | The Unreal 4.27 project. It has to be called `IntoTheRadius.uproject`. The map is in `Content/Mods/ItrShowcase/`: `L_ItrShowcase.umap` (the level, stored with Git LFS), the landscape layers and material, sky and marker materials, about 240 loot tables (`DataTable`s and composite tables), the mission data assets (`Missions/`) and the generated Blueprints. |
+| `project/Plugins/ItrShowcaseEditor` | An optional editor plugin that builds the map's Blueprints (teleport pad, light event, light follower, loot-table holder, the perimeter tide, an event director, a region director, the map settings, compass and progression actors) from JSON specs. You don't need it to open the map or to make your own. |
 | `project/build-map.ps1`, `extract-game-config.ps1` | Cook and pack the map into a pak; extract the game's `DefaultEngine.ini`. |
 | `loader/` | The UE4SS Lua mod that registers the map with the game, enters it and registers its missions, configured for this map. See [`loader/README.md`](loader/README.md). |
 | `docs/images/` | Pictures used in this README. |
@@ -110,11 +110,13 @@ The sun and sky light are off while you're inside, because the forward renderer 
 Known issues with the bunkers:
 - The fade is a bit heavy handed and will be tuned.
 - If you save standing on a landing, you go through the fade when it loads.
+- Loose items on the landing stay behind when you go through.
 - The bunker is outside the map square, so the tablet map shows you off the picture while you're in it. The ruin on top of it may be visible from the edge of the map.
 
 ## It's an example, or a demo, I call it showcase
-Everything below is placed in `L_ItrShowcase` (the persistent level of the map) and grouped in the World Outliner by
-pocket: `P1_Kordon/...` to `P12_Kariera/...`, plus `Returns/R0`, `Teleports`, `Rail`, `Water` and `Network`. The numbers are from the cooked level of the current build (counts of placed actors and instances); the outliner has the real ones.
+Everything is placed in `L_ItrShowcase` (the persistent level of the map) and grouped in the World Outliner by
+pocket: `P1_Kordon/...` to `P12_Kariera/...`, plus `Returns/R0`, `Teleports`, `Rail`, `Water` and `Network`. The systems and
+their counts are in `READMEBORING.MD`.
 
 
 ## Attribution

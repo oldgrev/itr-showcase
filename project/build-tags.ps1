@@ -42,6 +42,11 @@ if ($Tag -notmatch '^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)+$') { throw "Not a gameplay 
 
 # the tag ini: ASCII, LF, no BOM
 $text = "[/Script/GameplayTags.GameplayTagsList]`nGameplayTagList=(Tag=`"$Tag`",DevComment=`"$Map level; registered so a save made in the map keeps its level`")`n"
+# T-230: the area trigger tags (Config\Tags\ItrShowcaseAreaTriggers.ini, GameplayTagList lines) ride in the same ini: a trigger tag the game has not registered never matches
+$Extra = Join-Path $PSScriptRoot "Config\Tags\ItrShowcaseAreaTriggers.ini"
+if (Test-Path $Extra) {
+    foreach ($l in Get-Content $Extra) { if ($l -match '^GameplayTagList=') { $text += $l.Trim() + "`n" } }
+}
 [IO.File]::WriteAllBytes($Ini, [Text.Encoding]::ASCII.GetBytes($text))
 Write-Host "Tag $Tag -> $Ini"
 

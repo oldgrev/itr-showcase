@@ -16,7 +16,7 @@ so switch it off while you play the showcase (see "ITRMapLoader" in [`INSTALL.md
   - `Scripts/config.lua`: the map entry (`ItrShowcase`, `/Game/Mods/ItrShowcase/L_ItrShowcase`, tag
     `Level.Zone.ItrShowcase`, map centre, start position, the tablet map settings, the return-pad marker and the bunker return points), the triggers, the log
     tag, the console command and the missions switch.
-  - `Scripts/ItrShowcase.loot.json`: the map's loot tags and budgets (68 tags). `main.lua` finds it as
+  - `Scripts/ItrShowcase.loot.json`: the map's loot tags and budgets (80 tags). `main.lua` finds it as
     `<Map Name>.loot.json` next to itself. Without it the map still loads, but the loader skips the loot registration
     (the log says `no loot manifest`).
   - `Scripts/missions.lua` and `Scripts/ItrShowcase.missions.json`: the showcase missions (see "Missions" below).
@@ -43,7 +43,7 @@ Entering only works from the Hub.
 - The map has one exit point, R0 (the Kordon entrance): a `TargetPoint` tagged `itr:exit` and `itr:exit_id:R0`, on the return pad.
   Stand within `ExitRadius` (150 cm) of it and the loader asks the game to go back to the Hub. `F9` and `itrshowcase leave`
   work too. The loader reads any number of exit points.
-- **Re-entry.** Leaving through an exit with an id is remembered in `Scripts/reentry.txt`. The next entry puts you at
+- **Re-entry.** Leaving through an exit with an id is remembered in `Scripts/reentry.txt`. The next time you enter, you arrive at
   the `itr:arrive:R<n>` marker in front of that exit instead of the start. Delete the file to forget, or set `ReEntry = false`.
 - **Leaving through a bunker door and coming back.** The tunnel door in the shared bunker sets the save marker `ItrShowcase:return:S` and transfers to the Hub. On the next
   entry, the loader finds that marker in `NativeBunkerReturns` (`config.lua`, one row, `S`), arrives at the row's position by the door and removes the marker. Moving between
@@ -59,7 +59,7 @@ turns the name back into a tag when it is read; a name the game does not know co
 The level tag (`Level.Zone.ItrShowcase`) is registered by a one-line tag ini in a separate small pak,
 `zzz_ITRMap_ItrShowcase_Tags_P.pak` (mount point `../../../IntoTheRadius/Config/Tags/`, in `Content/Paks/~mods` next to the map
 pak). The loader logs `tags: Level.Zone.ItrShowcase is REGISTERED` or `NOT registered` once at startup. When the game loads a
-save that is inside the map, the loader arms the exits, points the loot at the map's tables and applies the view settings.
+save that is inside the map, the loader arms the exits.
 
 **Known issue:** with the loader (or UE4SS) removed and the tag pak left in place, the tag is registered but the level doesn't exist,
 so a save made in the map won't continue. Put the loader back, or remove both paks. With the mod removed completely, a save made in
@@ -73,10 +73,12 @@ the player level and trigger flags of the progression unlock (`BP_ItrShowcase_Pr
 loader does no per-frame or per-second work for them.
 
 ## Loot
-The map includes its loot `DataTable`s and keeps them alive with a `BP_ItrShowcase_LootTables` actor that holds hard
-references to all of them (`LootHolderClass` in the config). At startup the loader registers the tags from
-`ItrShowcase.loot.json` in the game's loot config on the stock donor tables, points them at the map's tables while the
-map is loaded, and points them back at the donor tables when it goes. See "Loot" in the itr-common loader README.
+At startup, before the main menu, the loader registers the tags from `ItrShowcase.loot.json` in the game's loot config. It
+loads the chosen set's tables (Vanilla, Scavenger or Stalker, picked from the game config) from their paths in the manifest and
+keeps them in `GameInstance.ReferencedObjects`, so they stay loaded in the Hub, in the map and through tides. It doesn't
+re-point the entries when the map loads or unloads. The stock donor table is used for a tag only if its table can't be loaded.
+`LootFrameworkSet`, `LootFrameworkMarkers` and `LootFollowBudgets` in `config.lua` control the set and the budgets. See "Loot" in
+the itr-common loader README.
 
 ## Tablet map
 The hip tablet shows blank paper outside the map. `NativeMapPicture = true` makes the loader point the map's level row at the

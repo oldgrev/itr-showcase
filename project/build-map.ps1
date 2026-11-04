@@ -51,8 +51,8 @@ Write-Host "Packed $($files.Count) files -> $Pak"
 
 if ($Install) {
     if (Get-Process "IntoTheRadius-Win64-Shipping" -ErrorAction SilentlyContinue) { throw "Close the game first (paks are mounted at startup)." }
-    # T-165: install where the game loads it. When Paks\~mods\<pak> is a symlink (a mod manager's staging copy, e.g. Vortex), overwrite the link's TARGET and remove any loose
-    # copy in Paks (two paks of one name = the loose one shadows or duplicates the staged one). Otherwise write the loose pak as before. No backup (the pak is ~500 MB).
+    # Install where the game loads it. When Paks\~mods\<pak> is a symlink (a mod manager's staging copy, e.g. Vortex), overwrite the link's TARGET and remove any loose
+    # copy in Paks (two paks of one name = the loose one shadows or duplicates the staged one). Otherwise write the pak into Paks\~mods (every pak goes there; a loose copy in Paks is removed). No backup (the pak is ~500 MB).
     $Paks = Join-Path $GameDir "IntoTheRadius\Content\Paks"
     $Dest = Join-Path $Paks "~mods"
     function Get-InstallTarget([string]$Name) {
@@ -61,18 +61,16 @@ if ($Install) {
             $t = [string](@($link.Target)[0])
             if (-not [IO.Path]::IsPathRooted($t)) { $t = [IO.Path]::GetFullPath((Join-Path $Dest $t)) }
             if (Test-Path -LiteralPath (Split-Path $t -Parent)) { return @{ Path = $t; Link = $link.FullName } }
-            Write-Warning "$($link.FullName) is a symlink to $t but its folder is missing: writing a loose pak instead"
+            Write-Warning "$($link.FullName) is a symlink to $t but its folder is missing: writing the pak into ~mods instead"
         }
-        return @{ Path = (Join-Path $Paks $Name); Link = $null }
+        return @{ Path = (Join-Path $Dest $Name); Link = $null }
     }
+    New-Item -ItemType Directory -Force $Dest | Out-Null
     $tgt = Get-InstallTarget $PakName
     Copy-Item $Pak $tgt.Path -Force
-    if ($tgt.Link) {
-        Write-Host "Installed -> $($tgt.Path)  (target of the symlink $($tgt.Link))"
-        $loose = Join-Path $Paks $PakName
-        if (Test-Path -LiteralPath $loose) { Remove-Item -LiteralPath $loose -Force; Write-Host "Removed loose duplicate $loose" }
-    } else { Write-Host "Installed -> $($tgt.Path)  (loose pak: no ~mods symlink)" }
-    New-Item -ItemType Directory -Force $Dest | Out-Null
+    if ($tgt.Link) { Write-Host "Installed -> $($tgt.Path)  (target of the symlink $($tgt.Link))" } else { Write-Host "Installed -> $($tgt.Path)" }
+    $loose = Join-Path $Paks $PakName
+    if (Test-Path -LiteralPath $loose) { Remove-Item -LiteralPath $loose -Force; Write-Host "Removed loose duplicate $loose" }
     $TagsName = "zzz_ITRMap_$($Map)_Tags_P.pak"
     $tt = Get-InstallTarget $TagsName
     Copy-Item (Join-Path $OutDir $TagsName) $(if ($tt.Link) { $tt.Path } else { $Dest }) -Force

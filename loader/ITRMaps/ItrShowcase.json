@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "name": "ItrShowcase",
+  "displayName": "ITR Showcase",
+  "description": "2.5 km demo map",
+  "level": "/Game/Mods/ItrShowcase/L_ItrShowcase",
+  "levelTag": "Level.Zone.ItrShowcase",
+  "start": { "x": -143800, "y": -385500, "z": 3184, "yaw": 0 },
+  "enter": { "command": "itrshowcase" },
+  "triggers": [ { "kind": "regions" } ]
+}

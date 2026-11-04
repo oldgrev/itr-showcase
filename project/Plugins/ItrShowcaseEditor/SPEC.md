@@ -42,7 +42,7 @@ case, then by display name (Branch `True`/`False`, Delay `Completed`). `exec`/`i
 `execute`/`then`. If a pin isn't found, the error lists the pins the node has. Links are made before pin defaults, so
 wildcard pins (macros, array functions) are resolved by the time their defaults are set.
 
-## Additions (easter egg)
+## Additions
 
 Top-level keys: `"requires": ["Other.json"]` (paths relative to this spec) generates those specs first, so this Blueprint can name their
 classes (`object:/Game/.../BP_X.BP_X_C`); a spec is generated once per process and file time. A spec with no `nodes` needs no EventGraph, so
@@ -89,4 +89,15 @@ Ops and fields:
   applied after the final compile.
 * `UItrShowcaseBPGen.DumpBlueprint(AssetPath)` (Python `dump_blueprint`): JSON of what a saved Blueprint holds (parent, status, SCS components with
   class / parent / socket / template properties that differ from the class default as T3D export text, class defaults that differ from the parent,
-  variables, graph counts). Used by a comparison script in the maintainer's workspace (not in this repo) to compare a generated asset with the game's data.
+  variables, graph counts). Used by a comparison script that isn't in this repo to compare a generated asset with the game's data.
+
+## Additions (by-reference parameters)
+
+* A parameter / variable type may end in `&` (`"struct:HitResult&"`): the pin is by reference and const, like a C++ `const T&` parameter. A custom event
+  bound with `create_delegate` to a delegate that takes such a parameter (`OnComponentBeginOverlap`'s `SweepResult`, VRExpansion's `OnGripped` `GripInformation`)
+  needs it, or the compiler reports "does not match the necessary signature". Types without the `&` build as before.
+
+## Additions (Widget Blueprints)
+
+* When `"parent"` is a `UserWidget` child (`/Script/UMG.UserWidget`, or a game class derived from it such as `/Script/IntoTheRadius.WPage`), a new asset is made as a Widget Blueprint (with a root canvas panel), as the editor's widget factory does. An existing asset is reset in place as before. The spec can hold variables and event-graph nodes; there is no widget-tree operation, so a widget variable such as `Button_TapeRecord` (`"type": "object:/Script/UMG.Button"`) is a plain variable.
+* Use: a project-only stub of a game's widget, with the variables a cooked Blueprint reads by name (`WBP_Element_TapeRecord` with `Text_RecordName` and `Button_TapeRecord`), is generated so that other specs can name the widget's class by path. The stub stays out of the pak (a pak holds only `/Game/Mods/<map>`), and the cooked code resolves the variable by name on the game's own class. Run in the game for those two widgets and one page (`SB_Tapes`).

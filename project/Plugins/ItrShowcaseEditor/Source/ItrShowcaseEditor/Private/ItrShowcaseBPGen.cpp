@@ -45,6 +45,11 @@
 #include "Serialization/JsonWriter.h"
 #include "Dom/JsonValue.h"
 #include "UObject/Package.h"
+#include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintGeneratedClass.h"
+#include "Blueprint/WidgetTree.h"
+#include "WidgetBlueprint.h"
+#include "Components/CanvasPanel.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogItrBPGen, Log, All);
 
@@ -101,6 +106,10 @@ static bool ParsePinType(const FString& InType, FEdGraphPinType& Out, FString& E
 {
 	FString T = InType.TrimStartAndEnd();
 	Out = FEdGraphPinType();
+	// Trailing "&": a by-reference, const input (C++ `const T&`), e.g. "struct:HitResult&". An event bound to a delegate whose parameter is `const FHitResult&`
+	// (OnComponentBeginOverlap, VRExpansion OnGripped) needs the same flags, or the compiler reports a signature mismatch. Types without it are unchanged.
+	bool bConstRef = false;
+	if (T.EndsWith(TEXT("&"))) { bConstRef = true; T.LeftChopInline(1); T = T.TrimEnd(); }
 	if (T.EndsWith(TEXT("[]")))
 	{
 		Out.ContainerType = EPinContainerType::Array;
@@ -148,6 +157,7 @@ static bool ParsePinType(const FString& InType, FEdGraphPinType& Out, FString& E
 		Out.PinSubCategoryObject = C;
 	}
 	else { Error = FString::Printf(TEXT("unknown type '%s'"), *InType); return false; }
+	if (bConstRef) { Out.bIsReference = true; Out.bIsConst = true; }
 	return true;
 }
 
@@ -773,8 +783,15 @@ FString UItrShowcaseBPGen::GenerateBlueprintFromSpec(const FString& JsonPath)
 	const bool bNew = (BP == nullptr);
 	if (bNew)
 	{
-		BP = FKismetEditorUtilities::CreateBlueprint(Parent, Pkg, FName(*AssetName), BPTYPE_Normal, UBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass(), FName("ItrShowcaseBPGen"));
+		// A Widget Blueprint (the parent is a UserWidget child) is created the way the editor's widget factory does: UWidgetBlueprint, and a root panel in its tree.
+		const bool bWidget = Parent->IsChildOf(UUserWidget::StaticClass());
+		BP = FKismetEditorUtilities::CreateBlueprint(Parent, Pkg, FName(*AssetName), BPTYPE_Normal, bWidget ? UWidgetBlueprint::StaticClass() : UBlueprint::StaticClass(),
+			bWidget ? UWidgetBlueprintGeneratedClass::StaticClass() : UBlueprintGeneratedClass::StaticClass(), FName("ItrShowcaseBPGen"));
 		if (!BP) return FString::Printf(TEXT("ERROR %s: CreateBlueprint failed"), *Asset);
+		if (UWidgetBlueprint* WBP = Cast<UWidgetBlueprint>(BP))
+		{
+			if (WBP->WidgetTree && !WBP->WidgetTree->RootWidget) WBP->WidgetTree->RootWidget = WBP->WidgetTree->ConstructWidget<UWidget>(UCanvasPanel::StaticClass());
+		}
 	}
 	else
 	{
