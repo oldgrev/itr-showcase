@@ -105,7 +105,7 @@ Inside there's a bed, a shop, a health booth, storage, a mission computer and a 
 
 Walk back to the landing to get back out. The tunnel door's handle can be grabbed to return to the Hub. When you want to return, you'll return back to wherever you left from.
 
-The sun and sky light are off while you're inside, because the forward renderer can't block a movable sky light with walls.
+The sun and sky light are off while you're inside, because the forward renderer couldn't block a movable sky light with walls because I set a stupid high shadow distance when I was first setting it up and didn't realize, and then put in that fix and I haven't removed it yet.
 
 Known issues with the bunkers:
 - The fade is a bit heavy handed and will be tuned.
