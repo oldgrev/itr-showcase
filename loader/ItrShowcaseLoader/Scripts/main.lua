@@ -1629,7 +1629,7 @@ local NativeTrip = nil       -- the current native transfer in progress { Map, T
 -- chosen set's tables once, at registration (menu time), and appends them to GameInstance.ReferencedObjects, a UPROPERTY array
 -- the GC does walk: the entries point at the map's tables from then on, in the Hub, in the map and across every tide, so there is
 -- no re-pointing, no hook and no timer. (The game rolls the loot nodes before any game-mode event the loader could hook:
--- OnLevelPrepare of BP_PRGameMode runs after the first GenerateLoot, measured in T-228.)
+-- OnLevelPrepare of BP_PRGameMode runs after the first GenerateLoot, measured in a test run.)
 
 local function NativeMap()
     for _, M in ipairs(Config.Maps) do
