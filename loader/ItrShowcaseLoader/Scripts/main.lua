@@ -2992,6 +2992,7 @@ end
 -- (ExecuteConsoleCommand):
 --   <command> enter [MapName]    enter the map (the first map when no name is given)
 --   <command> leave              leave the current map (back to the Hub)
+--   <command> log <text>         write <text> to UE4SS.log (used by the region director Blueprint)
 -- A command naming a map this loader does not have is left for other handlers, so two loader mods can each use their own
 -- command name (set ConsoleCommand per loader) without taking each other's commands.
 local CommandName = Config.ConsoleCommand
@@ -2999,6 +3000,12 @@ if CommandName == nil then CommandName = "itrmap" end
 if CommandName and type(RegisterConsoleCommandHandler) == "function" then
     local OkC, ErrC = pcall(RegisterConsoleCommandHandler, CommandName, function(FullCommand, Parameters)
         local Verb = Parameters and Parameters[1] and tostring(Parameters[1]):lower() or "enter"
+        if Verb == "log" then                                      -- <command> log <text>: a Blueprint (the region director) writes one line to UE4SS.log
+            local Words = {}
+            for I = 2, #Parameters do Words[#Words + 1] = tostring(Parameters[I]) end
+            Log("%s", table.concat(Words, " "))
+            return true
+        end
         local Name = Parameters and Parameters[2] and tostring(Parameters[2]) or nil
         local Map = Config.Maps[1]
         if Name then Map = MapByName(Name) end
