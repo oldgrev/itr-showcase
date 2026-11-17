@@ -6,6 +6,21 @@ Status of every release: early test with issues (see "Status" in the README).
 
 Not in an archive yet. Changes since the 2026-10-29 build.
 
+### Look
+- **The map has an autumn look.** Birch are back, with yellow leaves, mostly around the town, the fields, the water and the roads.
+  Some stands of pine have turned gold, and the rest are a deeper green.
+- **The ground is different from place to place:** straw in the fields, needles and moss in the forest, dark peat and pale shingle
+  by the water, trampled dirt in town. It is a lot less grey.
+- **More on the ground.** Twigs, fallen branches and stumps in the forest, hogweed in the fields and reeds at the water's edge.
+- **Nothing outdoors should be black any more,** so enemies are easier to pick out against it.
+- **The lake and river have some colour.**
+
+### Day and night
+- **The day is redone.** The sun stays low, so shadows are long all day, and it is warmer at each end of the day.
+- **Night has a moon.** It is dark but you can still see where you are going, with a short darkest stretch around midnight.
+- **Fog is thinner by day** and thicker at dawn, with mist low over the lake and the river.
+- **Shadows carry on into the distance** instead of stopping a short way out, and hills cast them too.
+
 ### Loot
 - **Items from using Common Mod Dependencies are automatically used by stashes and as individual loot spawns.** Most of the map's loot tags (53 of 80: the tiers' ammo, equipment,
   food, furniture, valuables, stash and dead-man tables) are now composite tables: the map's tier rows plus the dependencies' 11 `ModdedData`

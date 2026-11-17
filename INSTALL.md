@@ -27,7 +27,7 @@ IntoTheRadius\Content\Paks\UE4SS-LICENSE.txt               UE4SS licence (MIT)
 IntoTheRadius\Content\Paks\LuaMods\shared\UEHelpers\UEHelpers.lua    helper the loader requires
 IntoTheRadius\Content\Paks\LuaMods\ItrShowcaseLoader\enabled.txt     turns the loader on
 IntoTheRadius\Content\Paks\LuaMods\ItrShowcaseLoader\Scripts\main.lua, config.lua, missions.lua, ItrShowcase.loot.json, ItrShowcase.missions.json
-IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak        the map (about 480 MB)
+IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_P.pak        the map (about 550 MB)
 IntoTheRadius\Content\Paks\~mods\zzz_ITRMap_ItrShowcase_Tags_P.pak   the level tag pak (under 1 KB): registers the map's level tag so saves keep it
 ```
 The normal archive also has `ITR-Showcase-INSTALL.md` (this file) at its root; you can delete it after unzipping.

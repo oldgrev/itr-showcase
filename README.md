@@ -1,7 +1,7 @@
 # ITR Showcase
 
 A large custom map for **Into the Radius 1 (version 2.7.2)**, with its Unreal project. It is a reference
-building a big ITR maps: how big a 2.7.2 map can be, how the zone look is matched (but not particularly well yet), and how
+building a big ITR maps: how big a 2.7.2 map can be, how the look is put together (it has an autumn look now rather than a stock zone's), and how
 the game's gameplay systems (loot, spawners, rifts, stashes, anomalies, cover, navmesh, teleports, exits, missions and the
 fog perimeter) are set up in a level that the game loads like a stock zone. Open the project to inspect the placements and
 copy what you need.
@@ -21,8 +21,7 @@ Known issues:
 - **Saving in the map works now**, as long as the tags pak (`zzz_ITRMap_ItrShowcase_Tags_P.pak`) is installed with the map pak. Without it you load back into the hub.
 - The bunkers are new and have had the least testing.
 - Everything placed is still being tuned.
-- The fog wall's transition (walk into the fog, get put back inside) has not been tested. I dunno I just can never be bothered.
-- My game sometimes crashes when I exit it, but it's done that before I even installed anything so I doubt it's this.
+- The fog wall's transition (walk into the fog, get put back inside) has been tested. It works as advertised.
 
 [`itr-common`](../itr-common/) has the map-making how-to, the editor patch and the generic loader this one is based on. It says
 how far each thing has been tested.
@@ -35,7 +34,7 @@ I have a playlist of all the unlisted progress videos I've been keeping that [de
 ## What's in the box
 | Folder / file | What |
 |---|---|
-| `project/` | The Unreal 4.27 project. It has to be called `IntoTheRadius.uproject`. The map is in `Content/Mods/ItrShowcase/`: `L_ItrShowcase.umap` (the level, stored with Git LFS), the landscape layers and material, sky and marker materials, about 240 loot tables (`DataTable`s and composite tables), the mission data assets (`Missions/`) and the generated Blueprints. |
+| `project/` | The Unreal 4.27 project. It has to be called `IntoTheRadius.uproject`. The map is in `Content/Mods/ItrShowcase/`: `L_ItrShowcase.umap` (the level, stored with Git LFS), the landscape layers and material, the tree, bush, sky and marker materials, the day and night sequence, about 240 loot tables (`DataTable`s and composite tables), the mission data assets (`Missions/`) and the generated Blueprints. |
 | `project/Plugins/ItrShowcaseEditor` | An optional editor plugin that builds the map's Blueprints (teleport pad, light event, light follower, loot-table holder, the perimeter tide, an event director, a region director, the map settings, compass and progression actors) from JSON specs. You don't need it to open the map or to make your own. |
 | `project/build-map.ps1`, `extract-game-config.ps1` | Cook and pack the map into a pak; extract the game's `DefaultEngine.ini`. |
 | `loader/` | The UE4SS Lua mod that registers the map with the game, enters it and registers its missions, configured for this map. See [`loader/README.md`](loader/README.md). |
@@ -54,7 +53,7 @@ Not in the box:
 
 
 ## Cloning (Git LFS)
-`project/Content/Mods/ItrShowcase/L_ItrShowcase.umap` is about 156 MB, over GitHub's file limit, so it is stored with
+`project/Content/Mods/ItrShowcase/L_ItrShowcase.umap` is about 320 MB, over GitHub's file limit, so it is stored with
 **Git LFS**. Install [Git LFS](https://git-lfs.com/) before cloning:
 ```
 git lfs install

@@ -1,6 +1,7 @@
 ### Scale and layout
 - One landscape of 2521 x 2521 vertices (about 2.5 km) with a separate material (`M_ItrShowcase_Landscape`: eight
-  weight-blended layers using 2.7.2 ground textures, `LI_ItrShowcase_*`). There is no backdrop landscape: a fog wall
+  blended layers using 2.7.2 ground textures, `LI_ItrShowcase_*`). The layer colours and texture sizes are parameters on its
+  instance, `MI_ItrShowcase_Landscape`, which is what the landscape uses. There is no backdrop landscape: a fog wall
   closes the map (see "The edge of the map").
 - Twelve pockets (P1 to P12), each with a tier from T1 to T5 that sets its enemy roster and loot, difficulty rising from south to
   north: P1 Kordon, the entrance checkpoint on the south rim (T1); P2 Berezhok forest (T2); P3 Novostroy construction site and rail
@@ -18,11 +19,28 @@
   the loader gives it a radius of 2.5 km around that point.
 
 ### Zone look
-Sun, sky light (the game's cubemap `04-03_Sun_A_1024`), height fog and an unbound post-process volume, following the
-2.7.2 Buffer zone's setup; the sky sphere is the game's mesh and master material with material instances made for the map
-(`MI_ItrShowcase_Sky_*`), and the Radius ball sits in the north. The lighting was redone in the 2026-10-29 build:
-a day cycle, a softer sun (especially 17:00 to 20:00), sun shadows reaching about 700 m, and tree cull distances doubled. Landscape grass uses copies of the game's grass types with longer cull distances
-(`Content/Mods/ItrShowcase/Grass`).
+Sun, sky light (the game's cubemap `04-03_Sun_A_1024`), height fog and an unbound post-process volume; the sky sphere is the
+game's mesh and master material with material instances made for the map (`MI_ItrShowcase_Sky_*`), and the Radius ball is in the
+north. The map no longer follows the Buffer zone's setup. It has an autumn look and a day and night made for it:
+- **Day and night.** One directional light is the sun by day and the moon at night. Its direction, strength and colour, the sky
+  light, the fog and the sky colours are keyed over the game's 24 hours in a level sequence
+  (`Content/Mods/ItrShowcase/Lighting/LS_ItrShowcase_Environment`) that the game's environment plays against its clock. The sun
+  stays low all day, and the light between 06:00 and 18:00 is held level so the middle of the day doesn't wash out. Night is lit
+  by the moon and the sky light, with a short dip around midnight.
+- **Fog.** Two layers: a thin haze over everything and a low layer that collects over the lake and the river. Both change through
+  the day.
+- **Camera.** The post-process volume is neutral (no colour gains); colour comes from the lights, the sky and the fog.
+- **Shadows.** Cascaded shadows near the player and distance-field shadows beyond them. One of the game's pines has no distance
+  field, so the map uses a copy of that mesh with one (`Content/Mods/ItrShowcase/Meshes/Forest`). Terrain shadows are turned on by
+  `BP_ItrShowcase_MapSettings` (see "Runtime settings" below).
+- **Trees and bushes.** Pines and birch. Needles, leaves, bushes and forest litter use one master material
+  (`Content/Mods/ItrShowcase/Materials/Look/M_ItrShowcase_Foliage`) with an instance per game material; each instance points at the
+  game's textures and carries the colour, so the textures themselves are not in the pak. The colour varies a little from plant to
+  plant. Tree trunks, grass and dry shrubs use the game's materials as they are.
+- **Ground.** The landscape layers keep the game's textures and recolour them per layer, with a different ground for forest,
+  fields, town, roads, rock and the water's edge.
+- **Grass.** Landscape grass uses copies of the game's grass types with longer cull distances (`Content/Mods/ItrShowcase/Grass`),
+  plus two made for the map: reeds at the water and hogweed in the fields.
 
 ### The edge of the map
 The map ends in a square fog wall about 1.25 km from the centre, so there is no backdrop to build or load. The pieces:
@@ -66,7 +84,7 @@ select one to see how it is configured.
 | Bunker services | stock health booth, storage, mission computer, shop, bed and vise | the shared bunker | The stock UI binds the first health booth, storage and mission computer it finds, so a map can only have one health booth, one storage and one mission computer. |
 | Fog perimeter | `BP_ItrShowcase_PerimeterTide`, `BP_SpawnSpline`, `FogWall_*` | `Global/Perimeter` | See "The edge of the map". |
 | Map board and tablet map | a two-sided map sign (a `StaticMeshActor` tagged `itr:mapboard`) carrying the material instance `MI_ItrShowcase_Map` | at the entrance | The picture on the sign is also what the hip tablet shows while you are in the map: the loader points the map's level row at the sign's material, and adds one `LevelGates` row per return pad (one, R0) so the pad shows as a marker. |
-| Runtime settings | `BP_ItrShowcase_MapSettings`, `BP_ItrShowcase_CompassSky`, `BP_ItrShowcase_Progression` | persistent level | Blueprint actors that do what a loader would otherwise do every tick: `MapSettings` sets `r.ViewDistanceScale 6` and `foliage.LODDistanceScale 6` in BeginPlay and restores the earlier values in EndPlay, `CompassSky` sets the compass target, `Progression` sets the player level and the trigger flags of the progression unlock. |
+| Runtime settings | `BP_ItrShowcase_MapSettings`, `BP_ItrShowcase_CompassSky`, `BP_ItrShowcase_Progression` | persistent level | Blueprint actors that do what a loader would otherwise do every tick: `MapSettings` sets `r.ViewDistanceScale 6` and `foliage.LODDistanceScale 6` and turns on terrain shadows in BeginPlay, and restores the earlier values in EndPlay, `CompassSky` sets the compass target, `Progression` sets the player level and the trigger flags of the progression unlock. |
 | Region progress | `BP_ItrShowcase_RegionDirector` (1) | persistent level | Counts enemy deaths per pocket, in all 12 pockets, and a pocket counts as cleared at 90 %. The enemies fed by a rift are credited once the rift is destroyed. The director reads its totals from the level at BeginPlay, from each spawner's `Monsters` and each rift's `Spawners`. How many enemies have to die follows the enemy-count setting: for each spawner, its Alternative Monsters Max (plus one on Increased, minus one on Reduced, never below 0), limited to the length of its enemy list; a pocket's number is the sum over its spawners, and a rift's share is the sum over its own spawners. I haven't checked the Normal and Reduced numbers in game yet. |
 
 ### Loot setup
